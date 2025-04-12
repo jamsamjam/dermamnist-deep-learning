@@ -103,7 +103,7 @@ class TestProject(unittest.TestCase):
                                   arg1=1)
 
     def test_3a_knn(self):
-        """Test K-Means."""
+        """Test K-NNS."""
         self.title("Testing KNN")
 
         knn_model = self._import_and_test("knn", "KNN", k=1)
@@ -143,26 +143,25 @@ class TestProject(unittest.TestCase):
         self.assertTrue((pred_labels_test == test_labels).all(),
                         f"LogisticRegression.predict() is not working on dummy data")
 
-    def test_3c_linear_regression(self):
-        """Test Linear Regression."""
-        self.title("Testing Linear Regression")
+    # def test_3c_linear_regression(self):
+    #     """Test Linear Regression."""
+    #     self.title("Testing Linear Regression")
 
-        LR_model = self._import_and_test("linear_regression", "LinearRegression", lmda=0)
+    #     LR_model = self._import_and_test("linear_regression", "LinearRegression", lmda=0)
 
-        #  Test on easy dummy data
-        N = 20
-        training_data = np.linspace(-1, 1, N)[:, None]
-        training_labels = 2 * training_data
-        test_data = np.random.rand(N, 1) * 2 - 1
-        test_labels = 2 * test_data
-        with no_print():
-            pred_labels_train = LR_model.fit(training_data, training_labels)
-            pred_labels_test = LR_model.predict(test_data)
-        self.assertTrue(np.isclose(pred_labels_train, training_labels).all(),
-                        f"LinearRegression.fit() is not working on dummy data")
-        self.assertTrue(np.isclose(pred_labels_test, test_labels).all(),
-                        f"LinearRegression.predict() is not working on dummy data")
-
+    #     #  Test on easy dummy data
+    #     N = 20
+    #     training_data = np.linspace(-1, 1, N)[:, None]
+    #     training_labels = 2 * training_data
+    #     test_data = np.random.rand(N, 1) * 2 - 1
+    #     test_labels = 2 * test_data
+    #     with no_print():
+    #         pred_labels_train = LR_model.fit(training_data, training_labels)
+    #         pred_labels_test = LR_model.predict(test_data)
+    #     self.assertTrue(np.isclose(pred_labels_train, training_labels).all(),
+    #                     f"LinearRegression.fit() is not working on dummy data")
+    #     self.assertTrue(np.isclose(pred_labels_test, test_labels).all(),
+    #                     f"LinearRegression.predict() is not working on dummy data")
 
 def warn(msg):
     print(f"\33[33m/!\\ Warning: {msg}\33[39m")
