@@ -77,6 +77,11 @@ class LogisticRegression(object):
             if self._accuracy(y, y_pred) >= 0.999:
                 break   
 
+    def _gradient_logistic(self, X, y):
+        y_pred = self._sigmoid(X @ self.w)
+        grad_w = X.T @ (y_pred - y)
+        return grad_w
+
     def _logistic_regression_classify(self, X):
         y_prob = self._sigmoid(X @ self.w)
         y_pred = np.where(y_prob < 0.5, 0, 1)
