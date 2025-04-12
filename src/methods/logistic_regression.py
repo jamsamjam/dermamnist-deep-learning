@@ -31,12 +31,7 @@ class LogisticRegression(object):
             pred_labels (array): target of shape (N,)
         """
         self.k = label_to_onehot(training_labels).shape[1]
-
-        if self.k == 2:
-            self._logistic_regression_train(training_data, training_labels)
-        else:
-            self._logistic_regression_train_multi(
-                training_data, training_labels)
+        self._logistic_regression_train_multi(training_data, training_labels)
 
         return self.predict(training_data)
 
@@ -49,21 +44,7 @@ class LogisticRegression(object):
         Returns:
             pred_labels (array): labels of shape (N,)
         """
-        if self.k == 2:
-            return self._logistic_regression_classify(test_data)
-        else:
-            return self._logistic_regression_classify_multi(test_data)
-
-    def _logistic_regression_train(self, X, y):
-        self.w = np.random.normal(0., 0.1, [X.shape[1]])
-
-        for epoch in range(self.max_iters):
-            gradient = self._gradient_logistic(X, y)
-            self.w -= self.lr * gradient
-
-            y_pred = self._logistic_regression_classify(X)
-            if self._accuracy(y, y_pred) >= 0.999:
-                break
+        return self._logistic_regression_classify_multi(test_data)
             
     def _logistic_regression_train_multi(self, X, y):
         self.w = np.random.normal(0., 0.1, (X.shape[1], self.k))
@@ -76,16 +57,6 @@ class LogisticRegression(object):
             y_pred = self._logistic_regression_classify_multi(X)
             if self._accuracy(y, y_pred) >= 0.999:
                 break   
-
-    def _gradient_logistic(self, X, y):
-        y_pred = self._sigmoid(X @ self.w)
-        grad_w = X.T @ (y_pred - y)
-        return grad_w
-
-    def _logistic_regression_classify(self, X):
-        y_prob = self._sigmoid(X @ self.w)
-        y_pred = np.where(y_prob < 0.5, 0, 1)
-        return y_pred
     
     def _gradient_logistic_multi(self, X, Y):
         grad_w = X.T @ (self._softmax(X @ self.w) - Y)
