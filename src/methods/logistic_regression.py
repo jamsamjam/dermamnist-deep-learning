@@ -20,7 +20,6 @@ class LogisticRegression(object):
         self.lr = lr
         self.max_iters = max_iters
 
-
     def fit(self, training_data, training_labels):
         """
         Trains the model, returns predicted labels for training data.
@@ -31,12 +30,15 @@ class LogisticRegression(object):
         Returns:
             pred_labels (array): target of shape (N,)
         """
-        ##
-        ###
-        #### WRITE YOUR CODE HERE!
-        ###
-        ##
-        return pred_labels
+        self.k = label_to_onehot(training_labels).shape[1]
+
+        if self.k == 2:
+            self._logistic_regression_train(training_data, training_labels)
+        else:
+            self._logistic_regression_train_multi(
+                training_data, training_labels)
+
+        return self.predict(training_data)
 
     def predict(self, test_data):
         """
@@ -47,9 +49,54 @@ class LogisticRegression(object):
         Returns:
             pred_labels (array): labels of shape (N,)
         """
-        ##
-        ###
-        #### WRITE YOUR CODE HERE!
-        ###
-        ##
-        return pred_labels
+        if self.k == 2:
+            return self._logistic_regression_classify(test_data)
+        else:
+            return self._logistic_regression_classify_multi(test_data)
+
+    def _logistic_regression_train(self, X, y):
+        self.w = np.random.normal(0., 0.1, [X.shape[1]])
+
+        for epoch in range(self.max_iters):
+            gradient = self._gradient_logistic(X, y)
+            self.w -= self.lr * gradient
+
+            y_pred = self._logistic_regression_classify(X)
+            if self._accuracy(y, y_pred) >= 0.999:
+                break
+            
+    def _logistic_regression_train_multi(self, X, y):
+        self.w = np.random.normal(0., 0.1, (X.shape[1], self.k))
+        Y = label_to_onehot(y)
+
+        for epoch in range(self.max_iters):
+            gradient = self._gradient_logistic_multi(X, Y)
+            self.w -= self.lr * gradient
+
+            y_pred = self._logistic_regression_classify_multi(X)
+            if self._accuracy(y, y_pred) >= 0.999:
+                break   
+
+    def _logistic_regression_classify(self, X):
+        y_prob = self._sigmoid(X @ self.w)
+        y_pred = np.where(y_prob < 0.5, 0, 1)
+        return y_pred
+    
+    def _gradient_logistic_multi(self, X, Y):
+        grad_w = X.T @ (self._softmax(X @ self.w) - Y)
+        return grad_w
+
+    def _accuracy(self, y_true, y_pred):
+        return np.mean(y_true == y_pred)
+
+    def _logistic_regression_classify_multi(self, X):
+        logits = X @ self.w
+        return np.argmax(self._softmax(logits), axis=1)
+    
+    def _softmax(self, z):
+        exp_z = np.exp(z - np.max(z, axis=1, keepdims=True))
+        return exp_z / np.sum(exp_z, axis=1, keepdims=True)
+    
+    def _sigmoid(self, t):
+        return 1 / (1 + np.exp(-np.clip(t, -500, 500)))
+    
