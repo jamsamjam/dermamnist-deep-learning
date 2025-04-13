@@ -29,11 +29,36 @@ class KMeans(object):
             pred_labels (np.array): labels of shape (N,)
         """
 
-        ##
-        ###
-        #### YOUR CODE HERE!
-        ###
-        ##
+        ###################### UPDATE1 BEGIN ############################
+
+        self.K = len(np.unique(training_labels)) #typically 5
+
+        #initialize centroids
+        initial_indices = np.random.choice(training_data.shape[0], self.K, replace = False)
+        centroids = training_data[initial_indices]
+
+        for i in range(self.max_iters):
+            #assign clusters
+            distance = np.linalg.norm(training_data[:, np.newaxis] - centroids, axis = 2)
+            cluster_assignments = np.argmin(distance, axis=1)
+            
+            # Compute new centroids
+            new_centroids = np.array([
+                training_data[cluster_assignments == k].mean(axis=0)
+                if np.any(cluster_assignments == k) else centroids[k]
+                for k in range(self.K)
+            ])
+
+            # Check for convergence
+            if np.allclose(centroids, new_centroids):
+                break
+
+            centroids = new_centroids
+
+        self.centroids = centroids
+        pred_labels = cluster_assignments
+
+        ###################### UPDATE1 ENDS ############################
 
         return pred_labels
 
@@ -46,10 +71,10 @@ class KMeans(object):
         Returns:
             test_labels (np.array): labels of shape (N,)
         """
-        ##
-        ###
-        #### YOUR CODE HERE!
-        ###
-        ##
+        
+        ###################### UPDATE2 BEGIN ############################
+        distances = np.linalg.norm(test_data[:, np.newaxis] - self.centroids, axis=2)
+        test_labels = np.argmin(distances, axis=1)
+        ###################### UPDATE2 ENDS ############################
 
         return test_labels

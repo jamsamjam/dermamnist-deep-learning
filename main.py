@@ -53,8 +53,11 @@ def main(args):
     if args.method == "dummy_classifier":
         method_obj = DummyClassifier(arg1=1, arg2=2)
 
-    elif ...:  ### WRITE YOUR CODE HERE
-        pass
+    ###################### UPDATE for Kmeans BEGIN ############################
+    elif args.method == "kmeans":
+        method_obj = KMeans(max_iters=args.max_iters)
+    ###################### UPDATE for Kmeans ENDS ############################
+    
 
     ## 4. Train and evaluate the method
     # Fit (:=train) the method on the training data for classification task
