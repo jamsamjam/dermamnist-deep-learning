@@ -56,8 +56,8 @@ class KNN(object):
         norm_test_data = test_data #normalize(test_data, mean_training_data,std_training_data)
         
         list = []
-        for val in unlabeled:
-            list.append(kNN_one_example(val, norm_training_data, training_labels, self.k) )
+        for val in norm_test_data:
+            list.append(self.kNN_one_example(val, norm_training_data, self.training_labels, self.k) )
             
         test_labels = np.array(list)
         
@@ -85,68 +85,68 @@ class KNN(object):
         return newdatas
     
     
-    def euclidean_dist(example, training_examples):
-    """Compute the Euclidean distance between a single example
-    vector and all training_examples.
+    def euclidean_dist(self,example, training_examples):
+        """Compute the Euclidean distance between a single example
+        vector and all training_examples.
 
-    Inputs:
-        example: shape (D,)
-        training_examples: shape (NxD) 
-    Outputs:
-        euclidean distances: shape (N,)
-    """
+        Inputs:
+            example: shape (D,)
+            training_examples: shape (NxD) 
+        Outputs:
+            euclidean distances: shape (N,)
+        """
   
-    sum = np.sum((training_examples - example)**2, axis=1)
-    
-    return np.sqrt(sum)
+        sum = np.sum((training_examples - example)**2, axis=1)
+
+        return np.sqrt(sum)
 
 
-    def find_k_nearest_neighbors(k, distances):
-    """ Find the indices of the k smallest distances from a list of distances.
-        Tip: use np.argsort()
+    def find_k_nearest_neighbors(self,k, distances):
+        """ Find the indices of the k smallest distances from a list of distances.
+            Tip: use np.argsort()
 
-    Inputs:
-        k: integer
-        distances: shape (N,) 
-    Outputs:
-        indices of the k nearest neighbors: shape (k,)
-    """
-   
-    sorted_indices = np.argsort(distances)
- 
-    return sorted_indices[:k]
+        Inputs:
+            k: integer
+            distances: shape (N,) 
+        Outputs:
+            indices of the k nearest neighbors: shape (k,)
+        """
+
+        sorted_indices = np.argsort(distances)
+
+        return sorted_indices[:k]
 
 
-    def predict_label(neighbor_labels):
-    """Return the most frequent label in the neighbors'.
+    def predict_label(self,neighbor_labels):
+        """Return the most frequent label in the neighbors'.
 
-    Inputs:
-        neighbor_labels: shape (N,) 
-    Outputs:
-        most frequent label
-    """
-    counts = np.bincount(neighbor_labels)
-    
+        Inputs:
+            neighbor_labels: shape (N,) 
+        Outputs:
+            most frequent label
+        """
+        counts = np.bincount(neighbor_labels)
+
         return np.argmax(counts)
 
     
-    def kNN_one_example(unlabeled_example, training_features, training_labels, k):
-    """Returns the label of a single unlabelled example.
+    def kNN_one_example(self,unlabeled_example, training_features, training_labels, k):
+        """Returns the label of a single unlabelled example.
 
-    Inputs:
-        unlabeled_example: shape (D,) 
-        training_features: shape (NxD)
-        training_labels: shape (N,) 
-        k: integer
-    Outputs:
-        predicted label
-    """
-    distances = euclidean_dist(unlabeled_example,training_features)
+        Inputs:
+            unlabeled_example: shape (D,) 
+            training_features: shape (NxD)
+            training_labels: shape (N,) 
+            k: integer
+        Outputs:
+            predicted label
+        """
+        distances = self.euclidean_dist(unlabeled_example,training_features)
+ 
+        nn_indices = self.find_k_nearest_neighbors(k,distances)
 
-    nn_indices = find_k_nearest_neighbors(k,distances)
+        neighbor_labels = training_labels[nn_indices]
 
-    neighbor_labels = training_labels[nn_indices]
-   
-    best_label = predict_label(neighbor_labels) 
-    
-    return best_label 
+        best_label = self.predict_label(neighbor_labels) 
+
+        return best_label 
