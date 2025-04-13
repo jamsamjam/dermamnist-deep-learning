@@ -142,6 +142,58 @@ class TestProject(unittest.TestCase):
                         f"LogisticRegression.fit() is not working on dummy data")
         self.assertTrue((pred_labels_test == test_labels).all(),
                         f"LogisticRegression.predict() is not working on dummy data")
+    
+    def test_3c_kmeans(self):
+        """Test K-Means clustering."""
+        self.title("Testing K-Means")
+
+        # Create a KMeans model with the correct parameter (max_iters instead of k)
+        kmeans_model = self._import_and_test("kmeans", "KMeans", max_iters=100)
+
+        # Test on simple clustered data - create 3 well-separated clusters
+        np.random.seed(42)  # For reproducibility
+        # Create 3 distinct clusters with 20 points each
+        cluster1 = np.random.randn(20, 2) + np.array([5, 5])
+        cluster2 = np.random.randn(20, 2) + np.array([-5, 5])
+        cluster3 = np.random.randn(20, 2) + np.array([0, -5])
+
+        training_data = np.vstack([cluster1, cluster2, cluster3])
+
+        # Create labels for each cluster (needed for the fit interface)
+        # Note: The actual KMeans implementation may use these just to determine K
+        training_labels = np.concatenate([np.zeros(20), np.ones(20), 2*np.ones(20)])
+
+        # Test data - one point from each clear cluster region
+        test_data = np.array([[5, 5], [-5, 5], [0, -5]])
+
+        with no_print():
+            # Get the cluster assignments from fit
+            cluster_assignments = kmeans_model.fit(training_data, training_labels)
+            # Predict clusters for test points
+            test_assignments = kmeans_model.predict(test_data)
+
+        # Verify results
+        self.assertIsInstance(cluster_assignments, np.ndarray,
+                            "KMeans.fit() should output cluster assignments as an array")
+        self.assertEqual(len(cluster_assignments), len(training_data),
+                       "KMeans.fit() should return assignments for each data point")
+
+        # Since K-means is unsupervised, the actual cluster IDs might not match our original labeling
+        # We check that points from each true cluster stayed together in the assignments
+
+        # Check each of our ground truth clusters
+        for i in range(3):
+            # Get points from the same true cluster
+            mask = training_labels == i
+            # Their assigned clusters should all be the same
+            unique_assignments = np.unique(cluster_assignments[mask])
+            self.assertEqual(len(unique_assignments), 1,
+                           f"Points from the same true cluster {i} got split into different clusters")
+
+        # Our test points should be assigned to three different clusters
+        unique_test_clusters = np.unique(test_assignments)
+        self.assertEqual(len(unique_test_clusters), 3,
+                       "Test points from different clusters should get different assignments")
 
     # def test_3c_linear_regression(self):
     #     """Test Linear Regression."""
