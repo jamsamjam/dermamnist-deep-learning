@@ -52,6 +52,13 @@ def main(args):
     # Follow the "DummyClassifier" example for your methods
     if args.method == "dummy_classifier":
         method_obj = DummyClassifier(arg1=1, arg2=2)
+        
+     ###################### UPDATE for Logistic regression BEGIN ############################
+    elif args.method == "logistic_regression":
+        method_obj = LogisticRegression(lr = args.lr, max_iters = args.max_iters)
+
+    ###################### UPDATE for Kmeans ENDS ############################
+        
 
     ###################### UPDATE for Kmeans BEGIN ############################
     elif args.method == "kmeans":
