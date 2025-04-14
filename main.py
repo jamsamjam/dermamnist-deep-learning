@@ -58,6 +58,12 @@ def main(args):
         method_obj = KMeans(max_iters=args.max_iters)
     ###################### UPDATE for Kmeans ENDS ############################
     
+    
+    ###################### UPDATE for Knn BEGIN ############################
+    elif args.method == "knn":
+        method_obj = KNN(k = args.K)
+    ###################### UPDATE for Kmeans ENDS ############################
+    
 
     ## 4. Train and evaluate the method
     # Fit (:=train) the method on the training data for classification task
