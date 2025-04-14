@@ -63,7 +63,7 @@ class KNN(object):
         return test_labels
     
     
-    def euclidean_dist(self,example, training_examples):
+    def euclidean_dist(self,example):
         """Compute the Euclidean distance between a single example
         vector and all training_examples.
         """
