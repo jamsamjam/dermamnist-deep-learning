@@ -12,6 +12,10 @@ import os
 
 np.random.seed(100)
 
+def train_split(X, y, test_size=0.2):
+    indices = np.random.permutation(len(X))
+    split = int(len(X) * (1 - test_size))
+    return X[indices[:split]], X[indices[split:]], y[indices[:split]], y[indices[split:]]
 
 def main(args):
     """
@@ -28,7 +32,7 @@ def main(args):
     if args.data_type == "features":
         feature_data = np.load("features.npz", allow_pickle=True)
         xtrain, xtest = feature_data["xtrain"], feature_data["xtest"]
-        ytrain, ytest = feature_data["ytrain"], feature_data["ytest"]
+        ytrain, ytest = feature_data["ytrain"].astype(int), feature_data["ytest"].astype(int) # TODO
 
     # ORIGINAL IMAGE DATASET (MS2)
     elif args.data_type == "original":
@@ -38,10 +42,15 @@ def main(args):
     ## 2. Then we must prepare it. This is where you can create a validation set, normalize, add bias, etc.
     # Make a validation set (it can overwrite xtest, ytest)
     if not args.test:
-        ### WRITE YOUR CODE HERE
-        pass
+        xtrain, xtest, ytrain, ytest = train_split(xtrain, ytrain, test_size=0.2)
 
-    ### WRITE YOUR CODE HERE to do any other data processing
+    xtrain = normalize_fn(xtrain, np.mean(xtrain, axis=0), np.std(xtrain, axis=0))
+    xtest = normalize_fn(xtest, np.mean(xtrain, axis=0), np.std(xtrain, axis=0))
+
+    # Append bias term for logistic regression
+    if args.method == "logistic_regression":
+        xtrain = append_bias_term(xtrain)
+        xtest = append_bias_term(xtest)
 
     ## 3. Initialize the method you want to use.
 
@@ -52,13 +61,10 @@ def main(args):
     # Follow the "DummyClassifier" example for your methods
     if args.method == "dummy_classifier":
         method_obj = DummyClassifier(arg1=1, arg2=2)
-        
     elif args.method == "logistic_regression":
         method_obj = LogisticRegression(lr = args.lr, max_iters = args.max_iters)
-
     elif args.method == "kmeans":
         method_obj = KMeans(max_iters=args.max_iters)
-    
     elif args.method == "knn":
         method_obj = KNN(k = args.K)
     
