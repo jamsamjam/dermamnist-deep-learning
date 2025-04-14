@@ -29,8 +29,6 @@ class KMeans(object):
             pred_labels (np.array): labels of shape (N,)
         """
 
-        ###################### UPDATE1 BEGIN ############################
-
         self.K = len(np.unique(training_labels)) #typically 5
 
         #initialize centroids
@@ -58,8 +56,6 @@ class KMeans(object):
         self.centroids = centroids
         pred_labels = cluster_assignments
 
-        ###################### UPDATE1 ENDS ############################
-
         return pred_labels
 
     def predict(self, test_data):
@@ -72,9 +68,7 @@ class KMeans(object):
             test_labels (np.array): labels of shape (N,)
         """
         
-        ###################### UPDATE2 BEGIN ############################
         distances = np.linalg.norm(test_data[:, np.newaxis] - self.centroids, axis=2)
         test_labels = np.argmin(distances, axis=1)
-        ###################### UPDATE2 ENDS ############################
 
         return test_labels

@@ -53,25 +53,15 @@ def main(args):
     if args.method == "dummy_classifier":
         method_obj = DummyClassifier(arg1=1, arg2=2)
         
-     ###################### UPDATE for Logistic regression BEGIN ############################
     elif args.method == "logistic_regression":
         method_obj = LogisticRegression(lr = args.lr, max_iters = args.max_iters)
 
-    ###################### UPDATE for Kmeans ENDS ############################
-        
-
-    ###################### UPDATE for Kmeans BEGIN ############################
     elif args.method == "kmeans":
         method_obj = KMeans(max_iters=args.max_iters)
-    ###################### UPDATE for Kmeans ENDS ############################
     
-    
-    ###################### UPDATE for Knn BEGIN ############################
     elif args.method == "knn":
         method_obj = KNN(k = args.K)
-    ###################### UPDATE for Kmeans ENDS ############################
     
-
     ## 4. Train and evaluate the method
     # Fit (:=train) the method on the training data for classification task
     preds_train = method_obj.fit(xtrain, ytrain)
