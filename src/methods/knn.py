@@ -49,13 +49,13 @@ class KNN(object):
         """
   
         #Normalize the test data
-        mean_training_data = np.mean(self.training_data)
-        std_training_data = np.std(self.training_data)
-        norm_training_data = self.training_data #normalize(self.training_data, mean_training_data,std_training_data)
-        norm_test_data = test_data #normalize(test_data, mean_training_data,std_training_data)
+        #mean_training_data = np.mean(self.training_data)
+        #std_training_data = np.std(self.training_data)
+        #norm_training_data = self.training_data #normalize(self.training_data, mean_training_data,std_training_data)
+        #norm_test_data = test_data #normalize(test_data, mean_training_data,std_training_data)
         
         list = []
-        for val in norm_test_data:
+        for val in test_data:
             list.append(self.kNN_predict_one(val))
             
         test_labels = np.array(list)
