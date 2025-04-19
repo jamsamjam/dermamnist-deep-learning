@@ -19,6 +19,8 @@ class LogisticRegression(object):
         """
         self.lr = lr
         self.max_iters = max_iters
+        self.mean = None
+        self.std = None
 
     def fit(self, training_data, training_labels):
         """
@@ -31,7 +33,11 @@ class LogisticRegression(object):
             pred_labels (array): target of shape (N,)
         """
         self.k = label_to_onehot(training_labels).shape[1]
-        self._logistic_regression_train_multi(training_data, training_labels)
+        self._normalize_fit(training_data)
+        X = self._normalize_transform(training_data)
+        X = np.hstack([X, np.ones((X.shape[0], 1))])
+
+        self._logistic_regression_train_multi(X, training_labels)
         return self.predict(training_data)
 
     def predict(self, test_data):
@@ -43,7 +49,16 @@ class LogisticRegression(object):
         Returns:
             pred_labels (array): labels of shape (N,)
         """
-        return self._logistic_regression_classify_multi(test_data)
+        X = self._normalize_transform(test_data)
+        X = np.hstack([X, np.ones((X.shape[0], 1))])
+        return self._logistic_regression_classify_multi(X)
+    
+    def _normalize_fit(self, X):
+        self.mean = np.mean(X, axis=0)
+        self.std = np.std(X, axis=0) + 1e-8
+
+    def _normalize_transform(self, X):
+        return (X - self.mean) / self.std
             
     def _logistic_regression_train_multi(self, X, y):
         N, D = X.shape
@@ -55,11 +70,6 @@ class LogisticRegression(object):
             gradient = self._gradient_logistic_multi(X, Y)
             gradient /= N
             self.w -= self.lr * gradient
-
-            y_pred = self._logistic_regression_classify_multi(X)
-            acc = self._accuracy(y, y_pred)
-            if acc >= 0.95:
-                break  
     
     def _gradient_logistic_multi(self, X, Y):
         logits = X @ self.w
