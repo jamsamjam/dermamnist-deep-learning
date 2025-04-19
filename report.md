@@ -9,6 +9,10 @@ In this first part, we will utilize three classifiers: logistic regression, KNN 
 ## Method
 
 ### K-Nearest Neighbors (KNN)
+The KNN is an algorithm which classifies a given argument x according to most of its k nearest neighbors in the training set. 
+- init: assigns to the current object the given argument k (by default k=1),and the task's type
+- fit: stores the current object the training data as well as its labels,returns the predicted labels
+- predict:classifies each point in the data test depending on the majority label of its nearest k neighbors, using the Euclidean distance. 
 
 ### Logistic Regression
 We implemented Logistic Regression using gradient descent optimization.  
