@@ -1,7 +1,6 @@
 import numpy as np
 
-from ..utils import get_n_classes, label_to_onehot, onehot_to_label
-
+from ..utils import label_to_onehot, append_bias_term, get_n_classes
 
 class LogisticRegression(object):
     """
@@ -32,12 +31,22 @@ class LogisticRegression(object):
         Returns:
             pred_labels (array): target of shape (N,)
         """
-        self.k = label_to_onehot(training_labels).shape[1]
+        self.k = get_n_classes(training_labels)
+
+        # Normalize and add bias term
         self._normalize_fit(training_data)
         X = self._normalize_transform(training_data)
-        X = np.hstack([X, np.ones((X.shape[0], 1))])
+        X = append_bias_term(X)
 
-        self._logistic_regression_train_multi(X, training_labels)
+        N, D = X.shape
+        np.random.seed(42)
+        self.weights = np.random.normal(0., 0.1, (D, self.k))
+        Y = label_to_onehot(training_labels)
+
+        for _ in range(self.max_iters):
+            gradient = self._compute_gradient(X, Y) / N
+            self.weights -= self.lr * gradient
+
         return self.predict(training_data)
 
     def predict(self, test_data):
@@ -50,8 +59,9 @@ class LogisticRegression(object):
             pred_labels (array): labels of shape (N,)
         """
         X = self._normalize_transform(test_data)
-        X = np.hstack([X, np.ones((X.shape[0], 1))])
-        return self._logistic_regression_classify_multi(X)
+        X = append_bias_term(X)
+        logits = X @ self.weights
+        return np.argmax(self._softmax(logits), axis=1)
     
     def _normalize_fit(self, X):
         self.mean = np.mean(X, axis=0)
@@ -59,30 +69,11 @@ class LogisticRegression(object):
 
     def _normalize_transform(self, X):
         return (X - self.mean) / self.std
-            
-    def _logistic_regression_train_multi(self, X, y):
-        N, D = X.shape
-        np.random.seed(42)
-        self.w = np.random.normal(0., 0.1, (X.shape[1], self.k))
-        Y = label_to_onehot(y)
-
-        for epoch in range(self.max_iters):
-            gradient = self._gradient_logistic_multi(X, Y)
-            gradient /= N
-            self.w -= self.lr * gradient
-    
-    def _gradient_logistic_multi(self, X, Y):
-        logits = X @ self.w
-        grad_w = X.T @ (self._softmax(logits) - Y)
-        return grad_w
-
-    def _accuracy(self, y_true, y_pred):
-        return np.mean(y_true == y_pred)
-
-    def _logistic_regression_classify_multi(self, X):
-        logits = X @ self.w
-        return np.argmax(self._softmax(logits), axis=1)
     
     def _softmax(self, z):
         exp_z = np.exp(z - np.max(z, axis=1, keepdims=True))
         return exp_z / np.sum(exp_z, axis=1, keepdims=True)
+    
+    def _compute_gradient(self, X, Y):
+        predictions = self._softmax(X @ self.weights)
+        return X.T @ (predictions - Y)
