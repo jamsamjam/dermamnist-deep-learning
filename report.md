@@ -49,6 +49,9 @@ Nonetheless, the model is able to discover some structure in the data space.
 ![Validation Accuracy vs Learning Rate](figures/lr_tuning.png)
 
 *(Figure 1: Validation set accuracy for different learning rates.)*
+### K-Nearest Neighbors (KNN): Which K to choose
+
+We use the Cross Validation method, which consists of finding the K that gives us the highest validation accuracy. In this dataset, there is a class imbalance (the size of class 0 in the training set is 128, for class 4 it is 8) and since Accuracy can be biased towards the largest class, we must consider the F1 Score. Also, K is usually chosen as an odd number to avoid ties in classification. From the validation results, we can see that the odd value that yields to the highest accuracy is 3, while for the F1 score it’s 7. Since considering F1 is important and K=7 gives us a similar rate for accuracy as K=3, hence we chose K=7 as the final hyperparameter.
 
 ## Discussion/Conclusion
 
