@@ -3,6 +3,8 @@
 375535 Sam Lee | 362578 | 379094
 
 ## Introduction
+Our project goal is to predict the presence of heart disease in a patient, categorized on a scale from 0 to 4.
+In this first part, we will utilize three classifiers: logistic regression, KNN and K-means.
 
 ## Method
 
