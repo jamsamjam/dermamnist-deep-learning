@@ -38,11 +38,11 @@ Nonetheless, the model is able to discover some structure in the data space.
 
 ## Experiment/Results
 
-| Method | Train Accuracy | Test Accuracy | Test F1-score |
-|:---|:---|:---|:---|
-| KNN (k=?) | 100% | XX% | XX |
-| Logistic Regression (lr=1e-3) | 60% | 44% | 0.16 |
-| KMeans | XX | XX% | XX |
+| Method | Train Accuracy | Test F1-score | Test Accuracy | Test F1-score |
+|:---|:---|:---|:---|:---|
+| KNN (k=7) | 64.979% |0.359204 | 60.000% | 0.329790 |
+| Logistic Regression (lr=1e-3) | 60% | XX |44% | 0.16 |
+| KMeans | XX | XX |XX% | XX |
 
 **Validation Accuracy vs Learning Rate (Logistic Regression):**
 
