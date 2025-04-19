@@ -47,6 +47,7 @@ class LogisticRegression(object):
             
     def _logistic_regression_train_multi(self, X, y):
         N, D = X.shape
+        np.random.seed(42)
         self.w = np.random.normal(0., 0.1, (X.shape[1], self.k))
         Y = label_to_onehot(y)
 
@@ -75,7 +76,3 @@ class LogisticRegression(object):
     def _softmax(self, z):
         exp_z = np.exp(z - np.max(z, axis=1, keepdims=True))
         return exp_z / np.sum(exp_z, axis=1, keepdims=True)
-    
-    def _sigmoid(self, t):
-        return 1 / (1 + np.exp(-np.clip(t, -500, 500)))
-    
