@@ -75,33 +75,31 @@ def main(args):
     ## 4. Train and evaluate the method
     if args.method == "logistic_regression" and not args.test:
         learning_rates = [1e-2, 1e-3, 5e-4, 1e-4]
-        val_accuracies = []
+        max_iters_list = [500, 1000, 2000, 5000]
+
+        results = {}
 
         for lr in learning_rates:
-            print(f"\nTraining Logistic Regression with lr = {lr}")
+            accs = []
+            for max_iters in max_iters_list:
+                print(f"Training Logistic Regression with lr={lr}, max_iters={max_iters}")
+                model = LogisticRegression(lr=lr, max_iters=max_iters)
+                model.fit(xtrain, ytrain)
+                preds_val = model.predict(xtest)
+                val_acc = accuracy_fn(preds_val, ytest)
+                accs.append(val_acc)
+            results[lr] = accs
 
-            model = LogisticRegression(lr=lr, max_iters=args.max_iters)
+        plt.figure(figsize=(10,7))
+        for lr in learning_rates:
+            plt.plot(max_iters_list, results[lr], marker='o', label=f'lr={lr}')
 
-            model.fit(xtrain, ytrain)
-            preds_val = model.predict(xtest)
-
-            val_acc = accuracy_fn(preds_val, ytest)
-            val_accuracies.append(val_acc)
-
-            print(f"Validation set: accuracy = {val_acc:.3f}")
-
-        best_idx = np.argmax(val_accuracies)
-        best_lr = learning_rates[best_idx]
-        print(f"\nBest learning rate selected: {best_lr}")
-
-        plt.figure(figsize=(8,6))
-        plt.plot(learning_rates, val_accuracies, marker='o')
-        plt.xscale('log')
-        plt.xlabel('Learning Rate (log scale)')
+        plt.xlabel('Max Iterations')
         plt.ylabel('Validation Accuracy')
-        plt.title('Validation Accuracy vs Learning Rate')
+        plt.title('Validation Accuracy vs Max Iterations for Different Learning Rates')
+        plt.legend()
         plt.grid(True)
-        plt.savefig('logistic_regression_lr_tuning.png')
+        plt.savefig('figures/validation_accuracy_lr.png')
         plt.show()
 
     else:
@@ -119,15 +117,12 @@ def main(args):
 
     ### WRITE YOUR CODE HERE if you want to add other outputs, visualization, etc.
     
-    
     #Visualizations for KNN
     
     # K range for accuracy and F1 scores
     if args.method == "knn":
         k_values = range(1, 21)
         odd_k_values = [k for k in k_values if k % 2 != 0]
-
-
 
         # Accuracy (Training vs Validation)
         train_errors_acc = []
@@ -166,7 +161,6 @@ def main(args):
         plt.legend()
         plt.tight_layout()
         plt.show()
-
 
         # F1 Score (Training vs Validation)
         train_errors_f1 = []

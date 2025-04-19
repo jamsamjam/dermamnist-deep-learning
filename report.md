@@ -1,71 +1,60 @@
 # Milestone 1 Report
 
-362578 Clea Maisonnier | 375535 Sam Lee | 379094
+362578 Clea Maisonnier | 375535 Sam Lee | 379094 Yahan Zhang
 
 ## Introduction
-Our project goal is to predict the presence of heart disease in a patient, categorized on a scale from 0 to 4.
-In this first part, we will utilize three classifiers: logistic regression, KNN and K-means.
+Our project goal is to predict the presence of heart disease in a patient, categorized on a scale from 0 to 4. We utilize the Heart Disease dataset, consisting of 297 samples and 13 features per patient. The dataset is split into 237 training samples and 60 testing samples.
+In this first part, we will utilize three classifiers: logistic regression, KNN and K-means. To assess the performance of our models, we use both Accuracy and Macro F1-Score, to account for class imbalance in the dataset.
 
 ## Method
 
 ### K-Nearest Neighbors (KNN)
 The KNN is an algorithm which classifies a given argument x according to most of its k nearest neighbors in the training set. 
-- init: assigns to the current object the given argument k (by default k=1),and the task's type
-- fit: stores the current object the training data as well as its labels,returns the predicted labels
-- predict:classifies each point in the data test depending on the majority label of its nearest k neighbors, using the Euclidean distance. 
+- init: assigns to the object the given argument k (default k=1) and the task's type.
+- fit: stores the training data and labels into the object and returns the predicted labels on the training set.
+- predict: classifies each point in the test set based on the majority label of its k nearest neighbors, using the Euclidean distance.
 
 ### Logistic Regression
-We implemented Logistic Regression using gradient descent optimization.  
-To select the best learning rate, we performed hyperparameter tuning based on validation set performance.
-
-We tested the following learning rates: `1e-2`, `1e-3`, `5e-4`, `1e-4`.  
-As shown in Figure 1 below, the validation accuracy dropped significantly when the learning rate was `1e-2`.
-
-Based on the results, we selected:
-- Best learning rate: `1e-3`
-- Max iterations: `1000`
+We implemented Logistic Regression using gradient descent optimization.
+- init: assigns to the object the given arguments learning rate and maximum number of iterations.
+- fit: normalizes the input features, appends a bias term, initializes the weights, and optimizes them using gradient descent to minimize the cross-entropy loss.
+- predict: applies the learned weights to the new input data, computes softmax probabilities, and assigns each point to the class with the highest probability.
 
 ### KMeans Clustering
-We implemented KMeans with K=5 (number of classes). As an unsupervised method, KMeans does not use label information during training. Therefore, the classification performance is limited when evaluated using accuracy or F1 score.
-
-Our implementation achieved:
-
-- Train accuracy: 20.7%, F1: 0.18  
-- Test accuracy: 15.0%, F1: 0.14
-
-These values are expected due to the nature of unsupervised learning. 
-Nonetheless, the model is able to discover some structure in the data space.
+We implemented KMeans clustering with K=5 (matching the number of classes). 
+- init: initializes the number of clusters K and the maximum number of iterations.
+- fit: randomly initializes cluster centers, assigns each training point to the nearest center, updates the centers by computing the mean of the assigned points, and repeats this process for a fixed number of iterations.
+- predict: assigns each test point to the nearest cluster center based on Euclidean distance.
 
 ## Experiment/Results
 
-| Method | Train Accuracy | Test F1-score | Test Accuracy | Test F1-score |
-|:---|:---|:---|:---|:---|
-| KNN (k=7) | 64.979% |0.359204 | 60.000% | 0.329790 |
-| Logistic Regression (lr=1e-3) | % | XX |% | 0 |
-| KMeans | XX | XX |XX% | XX |
+| Metric | KNN (k=7) | Logistic Regression (lr=1e-2, max_iters=500) | KMeans |
+|:---|:---|:---|:---|
+| Train Accuracy | 64.979% | 64.979% | 46.032% |
+| Train F1-score | 0.359204 | 0.386905 | 0.277622 |
+| Test Accuracy | 60.000% | 61.667% | 33.333% |
+| Test F1-score | 0.329790 | 0.330476 | 0.207763 |
 
 ### Validation Accuracy vs Learning Rate (Logistic Regression):
 
-![Validation Accuracy vs Learning Rate](figures/lr_tuning.png)
+To select the best learning rate, we performed hyperparameter tuning on both the learning rate and the number of maximum iterations simultaneously. 
+We evaluated learning rates [1e-2, 1e-3, 5e-4, 1e-4] and max iterations [500, 1000, 2000, 5000].
 
-*(Figure 1: Validation set accuracy for different learning rates.)*
+Based on the validation set performance shown in Figure 1, we selected the best learning rate `1e-2` and the best max iterations `500`. The model achieved the highest validation accuracy with these hyperparameters.
+
+![Validation set accuracy for different learning rates](figures/validation_accuracy_lr.png){ width=60% }
 
 ### K-Nearest Neighbors (KNN): Which K to choose
 
-We use the Cross Validation method, which consists of finding the K that gives us the highest validation accuracy. In this dataset, there is a class imbalance (the size of class 0 in the training set is 128, for class 4 it is 8) and since Accuracy can be biased towards the largest class, we must consider the F1 Score. Also, K is usually chosen as an odd number to avoid ties in classification. From the validation results, we can see that the odd value that yields to the highest accuracy is 3, while for the F1 score it’s 7. Since considering F1 is important and K=7 gives us a similar rate for accuracy as K=3, hence we chose K=7 as the final hyperparameter.
+We use cross-validation to find the K that gives the highest validation accuracy. Since the dataset exhibits class imbalance (e.g., the size of class 0 is significantly larger than that of class 4), accuracy alone may not be a reliable metric. Therefore, we also considered the Macro F1-Score, which better accounts for the imbalance. 
+K is typically chosen as an odd number to avoid ties. From the validation results, we observed that K=3 gave the highest accuracy, while K=7 gave the highest F1 score. Since considering F1 is important and K=7 achieves similar accuracy to K=3, we selected K=7 as the final hyperparameter.
 
-![Validation Accuracy vs Learning Rate](figures/validation_accuracy.png)
-
-*(Figure 2: Validation accuracy for different K values.)*
-
-![Validation Accuracy vs Learning Rate](figures/validation_f1score.png)
-
-*(Figure 3: Validation F1 score for different K values.)*
+![Validation set accuracy for different K values](figures/validation_accuracy_k.png)
 
 ## Discussion/Conclusion
 
 - **KMeans** showed low performance as expected for unsupervised clustering.
 - **KNN** achieved high training accuracy but lower generalization to the test set.
 - **Logistic Regression** provided reasonable generalization performance after hyperparameter tuning.
-- Hyperparameter tuning, especially learning rate selection, had a significant impact on Logistic Regression performance.
-
+- Hyperparameter tuning, especially learning rate and max iteration selection, had a significant impact on Logistic Regression performance.
+- Since **KMeans** is an unsupervised method and does not use label information during training, its classification performance is inherently limited when evaluated using supervised metrics like accuracy or F1 score. Nonetheless, it was able to uncover some structure in the data space.
