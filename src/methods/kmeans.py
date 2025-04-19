@@ -13,7 +13,6 @@ class KMeans(object):
         """
         self.max_iters = max_iters
         self.centroids = None
-        self.best_permutation = None
 
     def fit(self, training_data, training_labels):
         """
@@ -31,30 +30,46 @@ class KMeans(object):
 
         self.K = len(np.unique(training_labels)) #typically 5
 
-        #initialize centroids
-        initial_indices = np.random.choice(training_data.shape[0], self.K, replace = False)
-        centroids = training_data[initial_indices]
+        # Multiple random initializations
+        best_inertia = np.inf
+        best_centroids = None
+        best_cluster_assignments = None
+        n_init = 10
 
-        for i in range(self.max_iters):
-            #assign clusters
-            distance = np.linalg.norm(training_data[:, np.newaxis] - centroids, axis = 2)
-            cluster_assignments = np.argmin(distance, axis=1)
-            
-            # Compute new centroids
-            new_centroids = np.array([
-                training_data[cluster_assignments == k].mean(axis=0)
-                if np.any(cluster_assignments == k) else centroids[k]
-                for k in range(self.K)
-            ])
+        for init in range(n_init):
+            # Randomly initialize centroids
+            initial_indices = np.random.choice(training_data.shape[0], self.K, replace=False)
+            centroids = training_data[initial_indices]
 
-            # Check for convergence
-            if np.allclose(centroids, new_centroids):
-                break
+            for i in range(self.max_iters):
+                # Assign clusters
+                distance = np.linalg.norm(training_data[:, np.newaxis] - centroids, axis = 2)
+                cluster_assignments = np.argmin(distance, axis=1)
+                
+                # Compute new centroids
+                new_centroids = np.array([
+                    training_data[cluster_assignments == k].mean(axis=0)
+                    if np.any(cluster_assignments == k) else centroids[k]
+                    for k in range(self.K)
+                ])
+
+                # Check for convergence
+                if np.allclose(centroids, new_centroids):
+                    centroids = new_centroids
+                    break
 
             centroids = new_centroids
 
-        self.centroids = centroids
-        pred_labels = cluster_assignments
+            inertia = np.sum((training_data - centroids[cluster_assignments])**2)
+
+            # Keep the best clustering
+            if inertia < best_inertia:
+                best_inertia = inertia
+                best_centroids = centroids
+                best_cluster_assignments = cluster_assignments
+
+        self.centroids = best_centroids
+        pred_labels = best_cluster_assignments
 
         return pred_labels
 

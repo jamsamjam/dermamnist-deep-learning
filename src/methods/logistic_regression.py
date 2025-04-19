@@ -30,7 +30,6 @@ class LogisticRegression(object):
         Returns:
             pred_labels (array): target of shape (N,)
         """
-        training_labels = training_labels.astype(int)
         self.k = label_to_onehot(training_labels).shape[1]
         self._logistic_regression_train_multi(training_data, training_labels)
         return self.predict(training_data)
