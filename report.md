@@ -7,7 +7,6 @@
 ## Discussion/Conclusion
 
 
-###################### Updated for KMeans #####################
 ### KMens Clustering
 We implemented KMeans with K=5 (number of classes). As an unsupervised method, KMeans does not use label information during training. Therefore, the classification performance is limited when evaluated using accuracy or F1 score.
 

@@ -1,6 +1,7 @@
 import argparse
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from src.data import load_data
 from src.methods.dummy_methods import DummyClassifier
@@ -69,22 +70,52 @@ def main(args):
         method_obj = KNN(k = args.K)
     
     ## 4. Train and evaluate the method
-    # Fit (:=train) the method on the training data for classification task
-    preds_train = method_obj.fit(xtrain, ytrain)
+    if args.method == "logistic_regression" and not args.test:
+        learning_rates = [1e-2, 1e-3, 5e-4, 1e-4]
+        val_accuracies = []
 
-    # Predict on unseen data
-    preds = method_obj.predict(xtest)
+        for lr in learning_rates:
+            print(f"\nTraining Logistic Regression with lr = {lr}")
 
-    # Report results: performance on train and valid/test sets
-    acc = accuracy_fn(preds_train, ytrain)
-    macrof1 = macrof1_fn(preds_train, ytrain)
-    print(f"\nTrain set: accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
+            model = LogisticRegression(lr=lr, max_iters=args.max_iters)
 
-    acc = accuracy_fn(preds, ytest)
-    macrof1 = macrof1_fn(preds, ytest)
-    print(f"Test set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
+            model.fit(xtrain, ytrain)
+            preds_val = model.predict(xtest)
+
+            val_acc = accuracy_fn(preds_val, ytest)
+            val_accuracies.append(val_acc)
+
+            print(f"Validation set: accuracy = {val_acc:.3f}")
+
+        best_idx = np.argmax(val_accuracies)
+        best_lr = learning_rates[best_idx]
+        print(f"\nBest learning rate selected: {best_lr}")
+
+        plt.figure(figsize=(8,6))
+        plt.plot(learning_rates, val_accuracies, marker='o')
+        plt.xscale('log')
+        plt.xlabel('Learning Rate (log scale)')
+        plt.ylabel('Validation Accuracy')
+        plt.title('Validation Accuracy vs Learning Rate')
+        plt.grid(True)
+        plt.savefig('logistic_regression_lr_tuning.png')
+        plt.show()
+
+    else:
+        preds_train = method_obj.fit(xtrain, ytrain)
+
+        preds = method_obj.predict(xtest)
+
+        acc = accuracy_fn(preds_train, ytrain)
+        macrof1 = macrof1_fn(preds_train, ytrain)
+        print(f"\nTrain set: accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
+
+        acc = accuracy_fn(preds, ytest)
+        macrof1 = macrof1_fn(preds, ytest)
+        print(f"Test set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
 
     ### WRITE YOUR CODE HERE if you want to add other outputs, visualization, etc.
+
 
 
 if __name__ == "__main__":
