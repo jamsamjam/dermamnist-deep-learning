@@ -1,6 +1,6 @@
 # Milestone 1 Report
 
-375535 Sam Lee | 362578 | 379094
+375535 Sam Lee | 362578 Clea Maisonnier | 379094
 
 ## Introduction
 Our project goal is to predict the presence of heart disease in a patient, categorized on a scale from 0 to 4.
