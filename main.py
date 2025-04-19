@@ -43,10 +43,13 @@ def main(args):
     ## 2. Then we must prepare it. This is where you can create a validation set, normalize, add bias, etc.
     # Make a validation set (it can overwrite xtest, ytest)
     if not args.test:
+         #Split data into 80% training and 20% validation sets
         xtrain, xtest, ytrain, ytest = train_split(xtrain, ytrain, test_size=0.2)
 
-    xtrain = normalize_fn(xtrain, np.mean(xtrain, axis=0), np.std(xtrain, axis=0))
-    xtest = normalize_fn(xtest, np.mean(xtrain, axis=0), np.std(xtrain, axis=0))
+    #Normalize data
+    xtest = normalize_fn(xtest, np.mean(xtrain, 0, keepdims=True), np.std(xtrain, 0, keepdims=True))
+    xtrain = normalize_fn(xtrain, np.mean(xtrain, 0, keepdims=True), np.std(xtrain, 0, keepdims=True))
+    
 
     # Append bias term for logistic regression
     if args.method == "logistic_regression":
@@ -115,6 +118,93 @@ def main(args):
         print(f"Test set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
 
     ### WRITE YOUR CODE HERE if you want to add other outputs, visualization, etc.
+    
+    
+    #Visualizations for KNN
+    
+    # K range for accuracy and F1 scores
+    if args.method == "knn":
+        k_values = range(1, 21)
+        odd_k_values = [k for k in k_values if k % 2 != 0]
+
+
+
+        # Accuracy (Training vs Validation)
+        train_errors_acc = []
+        val_errors_acc = []
+
+        for k in k_values:
+            knn = KNN(k=k)
+            knn.fit(xtrain, ytrain)
+
+            ypred_train = knn.predict(xtrain)
+            train_error = accuracy_fn(ypred_train, ytrain)
+            train_errors_acc.append(train_error)
+
+            ypred_val = knn.predict(xtest)
+            val_error = accuracy_fn(ypred_val, ytest)
+            val_errors_acc.append(val_error)
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(k_values, train_errors_acc, 'r', label='Training Accuracy')
+        plt.plot(k_values, val_errors_acc, 'g', label='Validation Accuracy')
+
+        # Find best odd k 
+        best_odd_acc_k = odd_k_values[np.argmax([val_errors_acc[k-1] for k in odd_k_values])]
+        plt.axvline(x=best_odd_acc_k, color='purple', linestyle=':', 
+                    label=f'Best odd k (k={best_odd_acc_k})')
+        # Find best overall k 
+        best_acc_k = k_values[np.argmax([val_errors_acc[k-1] for k in k_values])]
+        plt.axvline(x=best_acc_k, color='pink', linestyle=':', 
+                    label=f'Best overall k (k={best_acc_k})')
+
+        plt.xlabel('Number of Neighbors (k)', fontsize=12)
+        plt.ylabel('Accuracy (%)', fontsize=12)
+        plt.title('Training vs Validation Accuracy', fontsize=14)
+        plt.xticks(k_values)
+        plt.grid(True, linestyle='--', alpha=0.3)
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
+
+
+        # F1 Score (Training vs Validation)
+        train_errors_f1 = []
+        val_errors_f1 = []
+
+        for k in k_values:
+            knn = KNN(k=k)
+            knn.fit(xtrain, ytrain)
+
+            ypred_train = knn.predict(xtrain)
+            train_errors_f1.append(macrof1_fn(ypred_train, ytrain))
+
+            ypred_val = knn.predict(xtest)
+            val_errors_f1.append(macrof1_fn(ypred_val, ytest))
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(k_values, train_errors_f1, 'r', label='Training F1 Score')
+        plt.plot(k_values, val_errors_f1, 'g', label='Validation F1 Score')
+
+        # Find best odd k 
+        best_odd_f1_k = odd_k_values[np.argmax([val_errors_f1[k-1] for k in odd_k_values])]
+        plt.axvline(x=best_odd_f1_k, color='purple', linestyle=':', 
+                    label=f'Best odd k (k={best_odd_f1_k})')
+        # Find best overall k 
+        best_f1_k = k_values[np.argmax([val_errors_f1[k-1] for k in k_values])]
+        plt.axvline(x=best_f1_k, color='pink', linestyle=':', 
+                    label=f'Best overall k (k={best_f1_k})')
+
+        plt.xlabel('Number of Neighbors (k)', fontsize=12)
+        plt.ylabel('F1 score', fontsize=12)
+        plt.title('Training vs Validation F1 Score', fontsize=14)
+        plt.xticks(k_values)
+        plt.grid(True, linestyle='--', alpha=0.3)
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
+
+    
 
 
 
