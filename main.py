@@ -2,13 +2,14 @@ import argparse
 
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 from src.data import load_data
 from src.methods.dummy_methods import DummyClassifier
 from src.methods.logistic_regression import LogisticRegression
 from src.methods.knn import KNN
 from src.methods.kmeans import KMeans
-from src.utils import normalize_fn, append_bias_term, accuracy_fn, macrof1_fn, mse_fn
+from src.utils import normalize_fn, append_bias_term, accuracy_fn, macrof1_fn
 import os
 
 np.random.seed(100)
@@ -104,6 +105,17 @@ def main(args):
 
     else:
         preds_train = method_obj.fit(xtrain, ytrain)
+
+        # Runtime Analysis
+        start_train = time.time()
+        preds_train = method_obj.fit(xtrain, ytrain)
+        end_train = time.time()
+        print(f"Training time: {end_train - start_train:.4f} seconds")
+
+        start_test = time.time()
+        preds = method_obj.predict(xtest)
+        end_test = time.time()
+        print(f"Prediction time: {end_test - start_test:.4f} seconds")
 
         preds = method_obj.predict(xtest)
 
