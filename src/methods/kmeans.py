@@ -27,7 +27,6 @@ class KMeans(object):
         Returns:
             pred_labels (np.array): labels of shape (N,)
         """
-
         self.K = len(np.unique(training_labels)) #typically 5
 
         # Multiple random initializations
