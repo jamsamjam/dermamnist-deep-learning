@@ -31,10 +31,10 @@ class KMeans(object):
         self.K = len(np.unique(training_labels)) #typically 5
 
         # Multiple random initializations
-        best_inertia = np.inf
+        n_init = 10
+        best_accuracy = 0
         best_centroids = None
         best_cluster_assignments = None
-        n_init = 10
 
         for init in range(n_init):
             # Randomly initialize centroids
@@ -43,9 +43,9 @@ class KMeans(object):
 
             for i in range(self.max_iters):
                 # Assign clusters
-                distance = np.linalg.norm(training_data[:, np.newaxis] - centroids, axis = 2)
-                cluster_assignments = np.argmin(distance, axis=1)
-                
+                distances = np.linalg.norm(training_data[:, np.newaxis] - centroids, axis=2)
+                cluster_assignments = np.argmin(distances, axis=1)
+
                 # Compute new centroids
                 new_centroids = np.array([
                     training_data[cluster_assignments == k].mean(axis=0)
@@ -58,15 +58,14 @@ class KMeans(object):
                     centroids = new_centroids
                     break
 
-            centroids = new_centroids
+                centroids = new_centroids
 
-            inertia = np.sum((training_data - centroids[cluster_assignments])**2)
+            best_match_acc, best_mapped_labels = self._best_cluster_matching(cluster_assignments, training_labels)
 
-            # Keep the best clustering
-            if inertia < best_inertia:
-                best_inertia = inertia
+            if best_match_acc > best_accuracy:
+                best_accuracy = best_match_acc
                 best_centroids = centroids
-                best_cluster_assignments = cluster_assignments
+                best_cluster_assignments = best_mapped_labels
 
         self.centroids = best_centroids
         pred_labels = best_cluster_assignments
@@ -87,3 +86,21 @@ class KMeans(object):
         test_labels = np.argmin(distances, axis=1)
 
         return test_labels
+    
+    def _best_cluster_matching(self, pred_labels, true_labels):
+        import itertools
+        best_acc = 0
+        best_mapping = None
+        K = len(np.unique(true_labels))
+
+        for permutation in itertools.permutations(range(K)):
+            mapped = np.array([permutation[label] for label in pred_labels])
+            acc = np.mean(mapped == true_labels)
+            if acc > best_acc:
+                best_acc = acc
+                best_mapping = permutation
+
+        best_mapped_labels = np.array([best_mapping[label] for label in pred_labels])
+
+        return best_acc, best_mapped_labels
+        
