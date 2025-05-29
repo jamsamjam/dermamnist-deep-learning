@@ -1,4 +1,5 @@
 import numpy as np 
+import matplotlib.pyplot as plt
 
 
 # Generaly utilies
@@ -112,3 +113,41 @@ def mse_fn(pred,gt):
     loss = (pred-gt)**2
     loss = np.mean(loss)
     return loss
+
+def plot_confusion_matrix(y_true, y_pred, num_classes, normalize=False):
+    """
+    Plot confusion matrix using only numpy + matplotlib
+
+    Arguments:
+        y_true (np.array): ground-truth labels
+        y_pred (np.array): predicted labels
+        num_classes (int): number of total classes
+        normalize (bool): whether to normalize rows
+    """
+    cm = np.zeros((num_classes, num_classes), dtype=np.int32)
+    for t, p in zip(y_true, y_pred):
+        cm[p, t] += 1  # row: prediction, col: ground truth
+
+    if normalize:
+        cm = cm.astype(np.float32) / (cm.sum(axis=1, keepdims=True) + 1e-6)
+
+    plt.figure(figsize=(7, 6))
+    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title("Confusion Matrix")
+    plt.colorbar()
+
+    tick_marks = np.arange(num_classes)
+    plt.xticks(tick_marks, tick_marks)
+    plt.yticks(tick_marks, tick_marks)
+    plt.xlabel("True Label")
+    plt.ylabel("Predicted Label")
+
+    for i in range(num_classes):
+        for j in range(num_classes):
+            value = cm[i, j]
+            plt.text(j, i, f"{value:.2f}" if normalize else str(value),
+                     horizontalalignment="center",
+                     color="white" if cm[i, j] > cm.max() / 2 else "black")
+
+    plt.tight_layout()
+    plt.show()

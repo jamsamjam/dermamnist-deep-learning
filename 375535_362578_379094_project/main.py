@@ -5,7 +5,7 @@ from torchinfo import summary
 
 from src.data import load_data
 from src.methods.deep_network import MLP, CNN, Trainer
-from src.utils import normalize_fn, append_bias_term, accuracy_fn, macrof1_fn, get_n_classes
+from src.utils import normalize_fn, append_bias_term, accuracy_fn, macrof1_fn, get_n_classes, plot_confusion_matrix
 
 
 def main(args):
@@ -101,7 +101,8 @@ def main(args):
         macrof1 = macrof1_fn(preds, yval)
         print(f"Validation set: accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
 
-    ### WRITE YOUR CODE HERE if you want to add other outputs, visualization, etc.
+        num_classes = get_n_classes(yval)
+        plot_confusion_matrix(yval, preds, num_classes, normalize=True)
 
 
 if __name__ == '__main__':

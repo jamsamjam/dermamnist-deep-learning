@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import TensorDataset, DataLoader
+from collections import Counter
+import numpy as np
 
 ## MS2
 
@@ -70,21 +72,34 @@ class CNN(nn.Module):
         super().__init__()
 
         self.conv_layers = nn.Sequential(
-            nn.Conv2d(input_channels, 32, kernel_size=3, padding=1), # (N, 3, 28, 28) -> (N, 32, 28, 28)
+            nn.Conv2d(input_channels, 32, kernel_size=3, padding=1),
+            nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2), # -> (N, 32, 14, 14)
+            
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
 
-            nn.Conv2d(32, 64, kernel_size=3, padding=1), # -> (N, 64, 14, 14)
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2), # -> (N, 64, 7, 7)
+
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+
+            nn.Dropout(0.3)
         )
 
         self.fc_layers = nn.Sequential(
-            nn.Flatten(), # -> (N, 64 * 7 * 7)
-            nn.Linear(64 * 7 * 7, 128),
+            nn.Flatten(),  # (N, 128 * 7 * 7)
+            nn.Linear(128 * 7 * 7, 256),
             nn.ReLU(),
-            nn.Linear(128, n_classes)
+            nn.Linear(256, n_classes)
         )
+
 
     def forward(self, x):
         """
@@ -124,8 +139,24 @@ class Trainer(object):
         self.model = model
         self.batch_size = batch_size
 
-        self.criterion = nn.CrossEntropyLoss()
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
+        self.criterion = None
+        self.optimizer = None
+
+    def compute_class_weights(self, labels_tensor):
+        """
+        Compute class weights inversely proportional to class frequencies.
+        Arguments:
+            labels (numpy array): training labels
+        Returns:
+            weights (Tensor): shape (C,) for CrossEntropyLoss
+        """
+        labels = labels_tensor.cpu().numpy()
+        counts = Counter(labels.tolist())
+        total = sum(counts.values())
+        num_classes = int(labels_tensor.max().item()) + 1
+        weights = [np.log(total / (counts.get(i, 1) + 1)) for i in range(num_classes)]
+        weights = torch.tensor(weights, dtype=torch.float32)
+        return weights
 
     def train_all(self, dataloader):
         """
@@ -140,7 +171,7 @@ class Trainer(object):
         for ep in range(self.epochs):
             self.train_one_epoch(dataloader, ep)
 
-            ### WRITE YOUR CODE HERE if you want to do add something else at each epoch
+        ### WRITE YOUR CODE HERE if you want to do add something else at each epoch
 
     def train_one_epoch(self, dataloader, ep):
         """
@@ -203,13 +234,23 @@ class Trainer(object):
         """
 
         # First, prepare data for pytorch
-        train_dataset = TensorDataset(torch.from_numpy(training_data).float(),
-                                      torch.from_numpy(training_labels))
+        training_data = torch.from_numpy(training_data).float()
+        training_labels = torch.from_numpy(training_labels).long()
+
+        # Compute class weights using training labels
+        class_weights = self.compute_class_weights(training_labels)
+        self.criterion = nn.CrossEntropyLoss(weight=class_weights)
+
+        # Optimizer setup after model is on correct device
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
+
+        # Build DataLoader
+        train_dataset = TensorDataset(training_data, training_labels)
         train_dataloader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
 
         self.train_all(train_dataloader)
 
-        return self.predict(training_data)
+        return self.predict(training_data.numpy())
 
     def predict(self, test_data):
         """
