@@ -68,11 +68,23 @@ class CNN(nn.Module):
             n_classes (int): number of classes to predict
         """
         super().__init__()
-        ##
-        ###
-        #### WRITE YOUR CODE HERE!
-        ###
-        ##
+
+        self.conv_layers = nn.Sequential(
+            nn.Conv2d(input_channels, 32, kernel_size=3, padding=1), # (N, 3, 28, 28) -> (N, 32, 28, 28)
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2), # -> (N, 32, 14, 14)
+
+            nn.Conv2d(32, 64, kernel_size=3, padding=1), # -> (N, 64, 14, 14)
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2), # -> (N, 64, 7, 7)
+        )
+
+        self.fc_layers = nn.Sequential(
+            nn.Flatten(), # -> (N, 64 * 7 * 7)
+            nn.Linear(64 * 7 * 7, 128),
+            nn.ReLU(),
+            nn.Linear(128, n_classes)
+        )
 
     def forward(self, x):
         """
@@ -84,11 +96,9 @@ class CNN(nn.Module):
             preds (tensor): logits of predictions of shape (N, C)
                 Reminder: logits are value pre-softmax.
         """
-        ##
-        ###
-        #### WRITE YOUR CODE HERE!
-        ###
-        ##
+        x = self.conv_layers(x)
+        preds = self.fc_layers(x)
+        
         return preds
 
 
