@@ -19,8 +19,8 @@ def main(args):
     """
     ## 1. First, we load our data and flatten the images into vectors
     xtrain, xtest, ytrain, y_test = load_data()
-    xtrain = xtrain.reshape(xtrain.shape[0], -1)
-    xtest = xtest.reshape(xtest.shape[0], -1)
+    # xtrain = xtrain.reshape(xtrain.shape[0], -1)
+    # xtest = xtest.reshape(xtest.shape[0], -1)
 
     ## 2. Then we must prepare it. This is were you can create a validation set,
     #  normalize, add bias, etc.
@@ -49,10 +49,16 @@ def main(args):
     # Prepare the model (and data) for Pytorch
     # Note: you might need to reshape the data depending on the network you use!
     n_classes = get_n_classes(ytrain)
+
     if args.nn_type == "mlp":
+        xtrain = xtrain.reshape(xtrain.shape[0], -1)
+        xtest = xtest.reshape(xtest.shape[0], -1)
+        if not args.test:
+            xval = xval.reshape(xval.shape[0], -1)
         model = MLP(input_size=xtrain.shape[1], n_classes=n_classes)
+    
     elif args.nn_type == "cnn":
-        xtrain = xtrain.transpose(0, 3, 1, 2) # NHWC → NCHW
+        xtrain = xtrain.transpose(0, 3, 1, 2)  # (N, H, W, C) → (N, C, H, W)
         xtest = xtest.transpose(0, 3, 1, 2)
         if not args.test:
             xval = xval.transpose(0, 3, 1, 2)
