@@ -73,10 +73,9 @@ def main(args):
     # preds = method_obj.predict(xtest)
 
     ## Report results: performance on train and valid/test sets
-    # acc = accuracy_fn(preds_train, ytrain)
-    # macrof1 = macrof1_fn(preds_train, ytrain)
-    # print(f"\nTrain set: accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
-
+    acc = accuracy_fn(preds_train, ytrain)
+    macrof1 = macrof1_fn(preds_train, ytrain)
+    print(f"\nTrain set: accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
 
     # ## As there are no test dataset labels, check your model accuracy on validation dataset.
     # # You can check your model performance on test set by submitting your test set predictions on the AIcrowd competition.
