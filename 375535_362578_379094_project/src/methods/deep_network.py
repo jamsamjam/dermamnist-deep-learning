@@ -115,7 +115,7 @@ class Trainer(object):
         self.batch_size = batch_size
 
         self.criterion = nn.CrossEntropyLoss()
-        self.optimizer = ...  ### WRITE YOUR CODE HERE
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
     def train_all(self, dataloader):
         """
@@ -142,11 +142,13 @@ class Trainer(object):
         Arguments:
             dataloader (DataLoader): dataloader for training data
         """
-        ##
-        ###
-        #### WRITE YOUR CODE HERE!
-        ###
-        ##
+        self.model.train()
+        for x_batch, y_batch in dataloader:
+            self.optimizer.zero_grad()
+            preds = self.model(x_batch)
+            loss = self.criterion(preds, y_batch)
+            loss.backward()
+            self.optimizer.step()
 
     def predict_torch(self, dataloader):
         """
@@ -165,12 +167,17 @@ class Trainer(object):
             pred_labels (torch.tensor): predicted labels of shape (N,),
                 with N the number of data points in the validation/test data.
         """
-        ##
-        ###
-        #### WRITE YOUR CODE HERE!
-        ###
-        ##
-        return pred_labels
+        self.model.eval()
+        pred_labels = []
+
+        with torch.no_grad():
+            for batch in dataloader:
+                x_batch = batch[0]  # (input only)
+                preds = self.model(x_batch)
+                pred_classes = preds.argmax(dim=1)
+                pred_labels.append(pred_classes)
+
+        return torch.cat(pred_labels, dim=0)
 
     def fit(self, training_data, training_labels):
         """
