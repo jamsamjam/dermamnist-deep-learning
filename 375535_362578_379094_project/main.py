@@ -27,11 +27,20 @@ def main(args):
 
     # Make a validation set
     if not args.test:
-    ### WRITE YOUR CODE HERE
+        N = xtrain.shape[0]
+        split = int(0.8 * N)
+        perm = np.random.permutation(N)
+        idx_train, idx_val = perm[:split], perm[split:]
 
+        xval = xtrain[idx_val]
+        yval = ytrain[idx_val]
+        xtrain = xtrain[idx_train]
+        ytrain = ytrain[idx_train]
 
-    ### WRITE YOUR CODE HERE to do any other data processing
-
+    xtrain = xtrain / 255.0
+    xtest = xtest / 255.0
+    if not args.test:
+        xval = xval / 255.0
 
     ## 3. Initialize the method you want to use.
 
@@ -41,7 +50,13 @@ def main(args):
     # Note: you might need to reshape the data depending on the network you use!
     n_classes = get_n_classes(ytrain)
     if args.nn_type == "mlp":
-        model = ... ### WRITE YOUR CODE HERE
+        model = MLP(input_size=xtrain.shape[1], n_classes=n_classes)
+    elif args.nn_type == "cnn":
+        xtrain = xtrain.transpose(0, 3, 1, 2) # NHWC → NCHW
+        xtest = xtest.transpose(0, 3, 1, 2)
+        if not args.test:
+            xval = xval.transpose(0, 3, 1, 2)
+        model = CNN(input_channels=3, n_classes=n_classes)
 
     summary(model)
 
@@ -55,20 +70,30 @@ def main(args):
     preds_train = method_obj.fit(xtrain, ytrain)
 
     # Predict on unseen data
-    preds = method_obj.predict(xtest)
+    # preds = method_obj.predict(xtest)
 
     ## Report results: performance on train and valid/test sets
     acc = accuracy_fn(preds_train, ytrain)
     macrof1 = macrof1_fn(preds_train, ytrain)
     print(f"\nTrain set: accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
 
+    # ## As there are no test dataset labels, check your model accuracy on validation dataset.
+    # # You can check your model performance on test set by submitting your test set predictions on the AIcrowd competition.
+    # acc = accuracy_fn(preds, xtest)
+    # macrof1 = macrof1_fn(preds, xtest)
+    # print(f"Validation set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
 
-    ## As there are no test dataset labels, check your model accuracy on validation dataset.
-    # You can check your model performance on test set by submitting your test set predictions on the AIcrowd competition.
-    acc = accuracy_fn(preds, xtest)
-    macrof1 = macrof1_fn(preds, xtest)
-    print(f"Validation set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
-
+    # TODO
+    if args.test:
+        preds = method_obj.predict(xtest)
+        acc = accuracy_fn(preds, y_test)
+        macrof1 = macrof1_fn(preds, y_test)
+        print(f"Test set: accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
+    else:
+        preds = method_obj.predict(xval)
+        acc = accuracy_fn(preds, yval)
+        macrof1 = macrof1_fn(preds, yval)
+        print(f"Validation set: accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
 
     ### WRITE YOUR CODE HERE if you want to add other outputs, visualization, etc.
 
