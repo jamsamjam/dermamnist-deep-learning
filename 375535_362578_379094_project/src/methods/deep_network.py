@@ -5,6 +5,8 @@ from torch.utils.data import TensorDataset, DataLoader
 from collections import Counter
 import numpy as np
 
+from src.utils import accuracy_fn, macrof1_fn
+
 ## MS2
 
 
@@ -123,7 +125,7 @@ class Trainer(object):
     It will also serve as an interface between numpy and pytorch.
     """
 
-    def __init__(self, model, lr, epochs, batch_size, device="cpu"):
+    def __init__(self, model, lr, epochs, batch_size, device="cpu", early_stop_patience=5, xval=None, yval=None):
         """
         Initialize the trainer object for a given model.
 
@@ -142,6 +144,12 @@ class Trainer(object):
 
         self.criterion = None
         self.optimizer = None
+
+        self.early_stop_patience = early_stop_patience
+        self.xval = xval
+        self.yval = yval
+        self.best_f1 = 0
+        self.epochs_without_improvement = 0
 
     def compute_class_weights(self, labels_tensor):
         """
@@ -172,6 +180,22 @@ class Trainer(object):
         for ep in range(self.epochs):
             self.train_one_epoch(dataloader, ep)
 
+            # Evaluate on validation set if available
+            if self.xval is not None and self.yval is not None:
+                val_preds = self.predict(self.xval)
+                val_f1 = macrof1_fn(val_preds, self.yval)
+                print(f" | Val F1: {val_f1:.4f}", end="")
+
+                if val_f1 > self.best_f1:
+                    self.best_f1 = val_f1
+                    self.epochs_without_improvement = 0
+                else:
+                    self.epochs_without_improvement += 1
+                    if self.epochs_without_improvement >= self.early_stop_patience:
+                        print("\nEarly stopping triggered.")
+                        break
+
+            # Print progress bar
             progress = int((ep + 1) / self.epochs * 50)
             bar = "[" + "■" * progress + " " * (50 - progress) + "]"
             print(f"\rEpoch {ep+1}/{self.epochs} {bar}", end="")

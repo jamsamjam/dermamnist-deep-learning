@@ -66,7 +66,14 @@ def main(args):
     summary(model)
 
     # Trainer object
-    method_obj = Trainer(model, lr=args.lr, epochs=args.max_iters, batch_size=args.nn_batch_size, device=args.device)
+    method_obj = Trainer(model,
+                        lr=args.lr,
+                        epochs=args.max_iters,
+                        batch_size=args.nn_batch_size,
+                        device=args.device,
+                        early_stop_patience=5,
+                        xval=xval,
+                        yval=yval)
 
 
     ## 4. Train and evaluate the method
@@ -116,7 +123,14 @@ def main(args):
             elif args.nn_type == "cnn":
                 model = CNN(input_channels=3, n_classes=n_classes)
 
-            trainer = Trainer(model, lr=lr, epochs=max_iters, batch_size=args.nn_batch_size, device=args.device)
+            trainer = Trainer(model,
+                                lr=args.lr,
+                                epochs=args.max_iters,
+                                batch_size=args.nn_batch_size,
+                                device=args.device,
+                                early_stop_patience=5,
+                                xval=xval,
+                                yval=yval)            
             preds_train = trainer.fit(xtrain, ytrain)
             acc_train = accuracy_fn(preds_train, ytrain)
             f1_train = macrof1_fn(preds_train, ytrain)
@@ -190,6 +204,8 @@ if __name__ == '__main__':
     parser.add_argument('--test', action="store_true",
                         help="train on whole training data and evaluate on the test data, otherwise use a validation set")
 
+    parser.add_argument('--early_stop_patience', type=int, default=5,
+                    help="Number of epochs to wait for improvement before early stopping")
 
     # "args" will keep in memory the arguments and their values,
     # which can be accessed as "args.data", for example.
