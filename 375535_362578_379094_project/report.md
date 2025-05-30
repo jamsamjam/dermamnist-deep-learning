@@ -10,7 +10,7 @@ Our project goal is to diagnose skin lesions across seven categories, by classif
 ### Multilayer Perceptron (MLP)
 The MLP is a class of feed-forward artificial neural network that maps input data to appropriate outputs through multiple layers of neurons. It is consisted of :
 - init: initializes the network. It defines the different layers such as the number and the size of each one. The size depends onthe differnt values of the hidden_layer.
--forward: performs the forward pass of the network. It applies linear transformation and the activation function.
+- forward: performs the forward pass of the network. It applies linear transformation and the activation function.
 
 ### Convolutional Neural Network (CNN)
 
