@@ -124,7 +124,7 @@ class Trainer(object):
     It will also serve as an interface between numpy and pytorch.
     """
 
-    def __init__(self, model, lr, epochs, batch_size):
+    def __init__(self, model, lr, epochs, batch_size, device="cpu"):
         """
         Initialize the trainer object for a given model.
 
@@ -136,8 +136,10 @@ class Trainer(object):
         """
         self.lr = lr
         self.epochs = epochs
-        self.model = model
         self.batch_size = batch_size
+        self.device = torch.device(device)
+        self.model = model.to(self.device)
+        print(f"Using device: {self.device}")
 
         self.criterion = None
         self.optimizer = None
@@ -189,6 +191,9 @@ class Trainer(object):
         """
         self.model.train()
         for x_batch, y_batch in dataloader:
+            x_batch = x_batch.to(self.device)
+            y_batch = y_batch.to(self.device)
+
             self.optimizer.zero_grad()
             preds = self.model(x_batch)
             loss = self.criterion(preds, y_batch)
@@ -217,7 +222,7 @@ class Trainer(object):
 
         with torch.no_grad():
             for batch in dataloader:
-                x_batch = batch[0]  # (input only)
+                x_batch = batch[0].to(self.device)
                 preds = self.model(x_batch)
                 pred_classes = preds.argmax(dim=1)
                 pred_labels.append(pred_classes)
@@ -238,11 +243,11 @@ class Trainer(object):
         """
 
         # First, prepare data for pytorch
-        training_data = torch.from_numpy(training_data).float()
-        training_labels = torch.from_numpy(training_labels).long()
+        training_data = torch.from_numpy(training_data).float().to(self.device)
+        training_labels = torch.from_numpy(training_labels).long().to(self.device)
 
         # Compute class weights using training labels
-        class_weights = self.compute_class_weights(training_labels)
+        class_weights = self.compute_class_weights(training_labels).to(self.device)
         self.criterion = nn.CrossEntropyLoss(weight=class_weights)
 
         # Optimizer setup after model is on correct device
@@ -254,7 +259,7 @@ class Trainer(object):
 
         self.train_all(train_dataloader)
 
-        return self.predict(training_data.numpy())
+        return self.predict(training_data.detach().cpu().numpy())
 
     def predict(self, test_data):
         """

@@ -66,7 +66,7 @@ def main(args):
     summary(model)
 
     # Trainer object
-    method_obj = Trainer(model, lr=args.lr, epochs=args.max_iters, batch_size=args.nn_batch_size)
+    method_obj = Trainer(model, lr=args.lr, epochs=args.max_iters, batch_size=args.nn_batch_size, device=args.device)
 
 
     ## 4. Train and evaluate the method
@@ -116,7 +116,7 @@ def main(args):
             elif args.nn_type == "cnn":
                 model = CNN(input_channels=3, n_classes=n_classes)
 
-            trainer = Trainer(model, lr=lr, epochs=max_iters, batch_size=args.nn_batch_size)
+            trainer = Trainer(model, lr=lr, epochs=max_iters, batch_size=args.nn_batch_size, device=args.device)
             preds_train = trainer.fit(xtrain, ytrain)
             acc_train = accuracy_fn(preds_train, ytrain)
             f1_train = macrof1_fn(preds_train, ytrain)
