@@ -1,31 +1,24 @@
-# Milestone 1 Report
+# Milestone 2 Report
 
 362578 Clea Maisonnier | 375535 Sam Lee | 379094 Yahan Zhang
 
 ## Introduction
-Our project goal is to predict the presence of heart disease in a patient. The dataset, with 297 samples (237 training, 60 testing), is used to predict heart disease presence on a scale of 0 to 4. We evaluate logistic regression, KNN, and KMeans using both Accuracy and Macro F1-Score to address class imbalance.
+Our project goal is to diagnose skin lesions across seven categories, by classifying dermastopic images from the DermaMNIST dataset. We evaluate Multilayer Perceptron (MLP) and Convolutional Neural Network (CNN).
 
 ## Method
 
-### K-Nearest Neighbors (KNN)
-The KNN is an algorithm which classifies a given argument x according to most of its k nearest neighbors in the training set. 
-- init: assigns parameters.
-- fit: stores the current object the training data as well as its labels,returns the predicted labels
-- predict: classifies each point in the data test depending on the majority label of its nearest k neighbors, using the Euclidean distance.
+### Multilayer Perceptron (MLP)
+The MLP is a class of feed-forward artificial neural network that maps input data to appropriate outputs through multiple layers of neurons. It is consisted of :
+- init: initializes the network. It defines the different layers such as the number and the size of each one. The size depends onthe differnt values of the hidden_layer.
+-forward: performs the forward pass of the network. It applies linear transformation and the activation function.
 
-### Logistic Regression
-We implemented Logistic Regression using gradient descent optimization.
-- init: assigns parameters.
-- fit: normalizes features, adds bias, initializes weights, and optimizes them using gradient descent to minimize the cross-entropy loss.
-- predict: outputs the class with highest probability.
+### Convolutional Neural Network (CNN)
 
-### KMeans Clustering
-We implemented KMeans clustering with K=5 (matching the number of classes).
-- init: assigns parameters.
-- fit: randomly initializes centers and iteratively updates them. We perform multiple random initializations and select the clustering that achieves the highest classification accuracy by finding the best cluster-to-label matching using the ground-truth labels.
-- predict: assigns each test point to the nearest center.
+
+### Trainer
 
 ## Experiment/Results
+
 
 | Method | Train Accuracy (%) | Train F1-score | Test Accuracy (%) | Test F1-score | Training Time (s) | Prediction Time (s) |
 |:---|:---|:---|:---|:---|:---|:---|
