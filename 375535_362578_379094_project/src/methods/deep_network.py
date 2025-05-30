@@ -171,7 +171,11 @@ class Trainer(object):
         for ep in range(self.epochs):
             self.train_one_epoch(dataloader, ep)
 
-        ### WRITE YOUR CODE HERE if you want to do add something else at each epoch
+            progress = int((ep + 1) / self.epochs * 50)
+            bar = "[" + "■" * progress + " " * (50 - progress) + "]"
+            print(f"\rEpoch {ep+1}/{self.epochs} {bar}", end="")
+
+        print()
 
     def train_one_epoch(self, dataloader, ep):
         """

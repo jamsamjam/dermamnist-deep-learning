@@ -2,6 +2,7 @@ import argparse
 
 import numpy as np
 from torchinfo import summary
+import matplotlib.pyplot as plt
 
 from src.data import load_data
 from src.methods.deep_network import MLP, CNN, Trainer
@@ -97,6 +98,76 @@ def main(args):
 
         num_classes = get_n_classes(yval)
         plot_confusion_matrix(yval, preds, num_classes, normalize=True)
+
+    ## Different learning rates and max_iters
+    results = []
+
+    learning_rates = [1e-3, 1e-4, 1e-5]
+    max_iters_list = [10, 50]
+
+    print("\n--- Hyperparameter sweep (lr × max_iters) ---")
+    for lr in learning_rates:
+        for max_iters in max_iters_list:
+            print(f"\n>> Training with lr={lr}, max_iters={max_iters}")
+
+            # Re-initialize the model
+            if args.nn_type == "mlp":
+                model = MLP(input_size=xtrain.shape[1], n_classes=n_classes)
+            elif args.nn_type == "cnn":
+                model = CNN(input_channels=3, n_classes=n_classes)
+
+            trainer = Trainer(model, lr=lr, epochs=max_iters, batch_size=args.nn_batch_size)
+            preds_train = trainer.fit(xtrain, ytrain)
+            acc_train = accuracy_fn(preds_train, ytrain)
+            f1_train = macrof1_fn(preds_train, ytrain)
+            print(f"Train: acc = {acc_train:.3f}% - F1 = {f1_train:.6f}")
+
+            if args.test:
+                preds = trainer.predict(xtest)
+                acc = accuracy_fn(preds, y_test)
+                f1 = macrof1_fn(preds, y_test)
+                print(f"Test: acc = {acc:.3f}% - F1 = {f1:.6f}")
+            else:
+                preds = trainer.predict(xval)
+                acc = accuracy_fn(preds, yval)
+                f1 = macrof1_fn(preds, yval)
+                print(f"Validation: acc = {acc:.3f}% - F1 = {f1:.6f}")
+
+            results.append((lr, max_iters, acc, f1))
+
+    # Plot the results (heatmap)
+    learning_rates = sorted(list(set([r[0] for r in results])))
+    max_iters_list = sorted(list(set([r[1] for r in results])))
+    acc_matrix = np.zeros((len(learning_rates), len(max_iters_list)))
+    f1_matrix = np.zeros((len(learning_rates), len(max_iters_list)))
+
+    for (lr, iters, acc, f1) in results:
+        i = learning_rates.index(lr)
+        j = max_iters_list.index(iters)
+        acc_matrix[i, j] = acc
+        f1_matrix[i, j] = f1
+
+    fig, ax = plt.subplots()
+    im = ax.imshow(f1_matrix, cmap='viridis')
+
+    ax.set_xticks(np.arange(len(max_iters_list)))
+    ax.set_yticks(np.arange(len(learning_rates)))
+    ax.set_xticklabels(max_iters_list)
+    ax.set_yticklabels([f"{lr:.0e}" for lr in learning_rates])
+
+    plt.xlabel("max_iters")
+    plt.ylabel("learning rate")
+    plt.title("Validation/Test F1-score")
+
+    # Annotate values on heatmap
+    for i in range(len(learning_rates)):
+        for j in range(len(max_iters_list)):
+            value = f"{f1_matrix[i, j]:.2f}"
+            ax.text(j, i, value, ha="center", va="center", color="white" if f1_matrix[i, j] < 0.5 else "black")
+
+    plt.colorbar(im)
+    plt.tight_layout()
+    plt.show()
 
 
 if __name__ == '__main__':
