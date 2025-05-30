@@ -19,8 +19,6 @@ def main(args):
     """
     ## 1. First, we load our data and flatten the images into vectors
     xtrain, xtest, ytrain, y_test = load_data()
-    # xtrain = xtrain.reshape(xtrain.shape[0], -1)
-    # xtest = xtest.reshape(xtest.shape[0], -1)
 
     ## 2. Then we must prepare it. This is were you can create a validation set,
     #  normalize, add bias, etc.
@@ -83,13 +81,9 @@ def main(args):
     macrof1 = macrof1_fn(preds_train, ytrain)
     print(f"\nTrain set: accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
 
-    # ## As there are no test dataset labels, check your model accuracy on validation dataset.
-    # # You can check your model performance on test set by submitting your test set predictions on the AIcrowd competition.
-    # acc = accuracy_fn(preds, xtest)
-    # macrof1 = macrof1_fn(preds, xtest)
-    # print(f"Validation set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
+    ## As there are no test dataset labels, check your model accuracy on validation dataset.
+    # You can check your model performance on test set by submitting your test set predictions on the AIcrowd competition.
 
-    # TODO
     if args.test:
         preds = method_obj.predict(xtest)
         acc = accuracy_fn(preds, y_test)
