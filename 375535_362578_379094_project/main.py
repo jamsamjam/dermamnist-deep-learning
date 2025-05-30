@@ -103,7 +103,7 @@ def main(args):
     results = []
 
     learning_rates = [1e-3, 1e-4, 1e-5]
-    max_iters_list = [10, 50]
+    max_iters_list = [10, 50, 100, 500]
 
     print("\n--- Hyperparameter sweep (lr × max_iters) ---")
     for lr in learning_rates:
