@@ -125,7 +125,7 @@ class Trainer(object):
     It will also serve as an interface between numpy and pytorch.
     """
 
-    def __init__(self, model, lr, epochs, batch_size, device="cpu", early_stop_patience=5, xval=None, yval=None):
+    def __init__(self, model, lr, epochs, batch_size, device="cpu", early_stop_patience=10, xval=None, yval=None, seed=42):
         """
         Initialize the trainer object for a given model.
 
@@ -135,6 +135,10 @@ class Trainer(object):
             epochs (int): number of epochs of training
             batch_size (int): number of data points in each batch
         """
+        self.loss_history = []
+        self.val_loss_history = []
+        self.val_f1_history = []
+
         self.lr = lr
         self.epochs = epochs
         self.batch_size = batch_size
@@ -151,6 +155,9 @@ class Trainer(object):
         self.best_f1 = 0
         self.epochs_without_improvement = 0
 
+        self.generator = torch.Generator()
+        self.generator.manual_seed(seed)
+
     def compute_class_weights(self, labels_tensor):
         """
         Compute class weights inversely proportional to class frequencies.
@@ -166,26 +173,55 @@ class Trainer(object):
         weights = [np.log(total / (counts.get(i, 1) + 1)) for i in range(num_classes)]
         weights = torch.tensor(weights, dtype=torch.float32)
         return weights
-
-    def train_all(self, dataloader):
+    
+    def train_one_epoch(self, dataloader, ep):
         """
-        Fully train the model over the epochs.
+        Train the model for ONE epoch.
 
-        In each epoch, it calls the functions "train_one_epoch". If you want to
-        add something else at each epoch, you can do it here.
+        Should loop over the batches in the dataloader. (Recall the exercise session!)
+        Don't forget to set your model to training mode, i.e., self.model.train()!
 
         Arguments:
             dataloader (DataLoader): dataloader for training data
         """
+        self.model.train()
+        total_loss = 0
+        for x_batch, y_batch in dataloader:
+            x_batch = x_batch.to(self.device)
+            y_batch = y_batch.to(self.device)
+
+            self.optimizer.zero_grad()
+            preds = self.model(x_batch)
+            loss = self.criterion(preds, y_batch)
+            loss.backward()
+            self.optimizer.step()
+            
+            total_loss += loss.item() * x_batch.size(0)
+            
+        avg_loss = total_loss / len(dataloader.dataset)
+        self.loss_history.append(avg_loss)
+
+    def train_all(self, dataloader):
         for ep in range(self.epochs):
             self.train_one_epoch(dataloader, ep)
 
             # Evaluate on validation set if available
             if self.xval is not None and self.yval is not None:
-                val_preds = self.predict(self.xval)
-                val_f1 = macrof1_fn(val_preds, self.yval)
-                print(f" | Val F1: {val_f1:.4f}", end="")
+                self.model.eval()
+                with torch.no_grad():
+                    x_val_tensor = torch.from_numpy(self.xval).float().to(self.device)
+                    y_val_tensor = torch.from_numpy(self.yval).long().to(self.device)
+                    val_preds_logits = self.model(x_val_tensor)
+                    val_loss = self.criterion(val_preds_logits, y_val_tensor).item()
+                    val_preds = val_preds_logits.argmax(dim=1).cpu().numpy()
+                    val_f1 = macrof1_fn(val_preds, self.yval)
 
+                    self.val_loss_history.append(val_loss)
+                    self.val_f1_history.append(val_f1)
+
+                print(f" | Val Loss: {val_loss:.4f} | Val F1: {val_f1:.4f}", end="")
+
+                # early stopping logic
                 if val_f1 > self.best_f1:
                     self.best_f1 = val_f1
                     self.epochs_without_improvement = 0
@@ -201,27 +237,6 @@ class Trainer(object):
             print(f"\rEpoch {ep+1}/{self.epochs} {bar}", end="")
 
         print()
-
-    def train_one_epoch(self, dataloader, ep):
-        """
-        Train the model for ONE epoch.
-
-        Should loop over the batches in the dataloader. (Recall the exercise session!)
-        Don't forget to set your model to training mode, i.e., self.model.train()!
-
-        Arguments:
-            dataloader (DataLoader): dataloader for training data
-        """
-        self.model.train()
-        for x_batch, y_batch in dataloader:
-            x_batch = x_batch.to(self.device)
-            y_batch = y_batch.to(self.device)
-
-            self.optimizer.zero_grad()
-            preds = self.model(x_batch)
-            loss = self.criterion(preds, y_batch)
-            loss.backward()
-            self.optimizer.step()
 
     def predict_torch(self, dataloader):
         """
@@ -278,7 +293,7 @@ class Trainer(object):
 
         # Build DataLoader
         train_dataset = TensorDataset(training_data, training_labels)
-        train_dataloader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
+        train_dataloader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True, generator=self.generator)
 
         self.train_all(train_dataloader)
 

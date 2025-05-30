@@ -71,7 +71,7 @@ def main(args):
                         epochs=args.max_iters,
                         batch_size=args.nn_batch_size,
                         device=args.device,
-                        early_stop_patience=5,
+                        early_stop_patience=10,
                         xval=xval,
                         yval=yval)
 
@@ -80,6 +80,29 @@ def main(args):
 
     # Fit (:=train) the method on the training data
     preds_train = method_obj.fit(xtrain, ytrain)
+
+    # Early stopping visualization
+    if hasattr(method_obj, "val_loss_history") and len(method_obj.val_loss_history) > 0:
+        epochs = range(1, len(method_obj.val_loss_history) + 1)
+        plt.figure(figsize=(10,4))
+
+        plt.subplot(1,2,1)
+        plt.plot(epochs, method_obj.loss_history, label='Train Loss')
+        plt.plot(epochs, method_obj.val_loss_history, label='Val Loss')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.legend()
+        plt.title('Loss over Epochs')
+
+        plt.subplot(1,2,2)
+        plt.plot(epochs, method_obj.val_f1_history, label='Val Macro F1')
+        plt.xlabel('Epoch')
+        plt.ylabel('F1 Score')
+        plt.legend()
+        plt.title('Validation F1-score over Epochs')
+
+        plt.tight_layout()
+        plt.show()
 
     # Predict on unseen data
     # preds = method_obj.predict(xtest)
@@ -108,80 +131,63 @@ def main(args):
 
     ## Different learning rates and max_iters
     results = []
-
     learning_rates = [1e-3, 1e-4, 1e-5]
-    max_iters_list = [10, 50, 100, 500]
 
-    print("\n--- Hyperparameter sweep (lr × max_iters) ---")
+    print("\n--- Hyperparameter sweep (learning rates) ---")
     for lr in learning_rates:
-        for max_iters in max_iters_list:
-            print(f"\n>> Training with lr={lr}, max_iters={max_iters}")
+        print(f"\n>> Training with lr={lr}")
 
-            # Re-initialize the model
-            if args.nn_type == "mlp":
-                model = MLP(input_size=xtrain.shape[1], n_classes=n_classes)
-            elif args.nn_type == "cnn":
-                model = CNN(input_channels=3, n_classes=n_classes)
+        # Re-initialize the model
+        if args.nn_type == "mlp":
+            model = MLP(input_size=xtrain.shape[1], n_classes=n_classes)
 
-            trainer = Trainer(model,
-                                lr=args.lr,
-                                epochs=args.max_iters,
-                                batch_size=args.nn_batch_size,
-                                device=args.device,
-                                early_stop_patience=5,
-                                xval=xval,
-                                yval=yval)            
-            preds_train = trainer.fit(xtrain, ytrain)
-            acc_train = accuracy_fn(preds_train, ytrain)
-            f1_train = macrof1_fn(preds_train, ytrain)
-            print(f"Train: acc = {acc_train:.3f}% - F1 = {f1_train:.6f}")
+        trainer = Trainer(model,
+                            lr=lr,
+                            epochs=args.max_iters,
+                            batch_size=args.nn_batch_size,
+                            device=args.device,
+                            early_stop_patience=10,
+                            xval=xval,
+                            yval=yval)            
+        preds_train = trainer.fit(xtrain, ytrain)
+        acc_train = accuracy_fn(preds_train, ytrain)
+        f1_train = macrof1_fn(preds_train, ytrain)
+        print(f"Train: acc = {acc_train:.3f}% - F1 = {f1_train:.6f}")
 
-            if args.test:
-                preds = trainer.predict(xtest)
-                acc = accuracy_fn(preds, y_test)
-                f1 = macrof1_fn(preds, y_test)
-                print(f"Test: acc = {acc:.3f}% - F1 = {f1:.6f}")
-            else:
-                preds = trainer.predict(xval)
-                acc = accuracy_fn(preds, yval)
-                f1 = macrof1_fn(preds, yval)
-                print(f"Validation: acc = {acc:.3f}% - F1 = {f1:.6f}")
+        if args.test:
+            preds = trainer.predict(xtest)
+            acc = accuracy_fn(preds, y_test)
+            f1 = macrof1_fn(preds, y_test)
+            print(f"Test: acc = {acc:.3f}% - F1 = {f1:.6f}")
+        else:
+            preds = trainer.predict(xval)
+            acc = accuracy_fn(preds, yval)
+            f1 = macrof1_fn(preds, yval)
+            print(f"Validation: acc = {acc:.3f}% - F1 = {f1:.6f}")
 
-            results.append((lr, max_iters, acc, f1))
+        results.append((lr, acc, f1))
 
-    # Plot the results (heatmap)
-    learning_rates = sorted(list(set([r[0] for r in results])))
-    max_iters_list = sorted(list(set([r[1] for r in results])))
-    acc_matrix = np.zeros((len(learning_rates), len(max_iters_list)))
-    f1_matrix = np.zeros((len(learning_rates), len(max_iters_list)))
+    lr_list = [r[0] for r in results]
+    accuracy_list = [r[1] for r in results]
+    f1_list = [r[2] for r in results]
 
-    for (lr, iters, acc, f1) in results:
-        i = learning_rates.index(lr)
-        j = max_iters_list.index(iters)
-        acc_matrix[i, j] = acc
-        f1_matrix[i, j] = f1
+    # Plot the results
+    fig, ax1 = plt.subplots()
 
-    fig, ax = plt.subplots()
-    im = ax.imshow(f1_matrix, cmap='viridis')
+    ax1.set_xlabel('Learning Rate')
+    ax1.set_ylabel('Accuracy', color='tab:blue')
+    ax1.plot(lr_list, accuracy_list, 'o-', color='tab:blue', label='Accuracy')
+    ax1.tick_params(axis='y', labelcolor='tab:blue')
 
-    ax.set_xticks(np.arange(len(max_iters_list)))
-    ax.set_yticks(np.arange(len(learning_rates)))
-    ax.set_xticklabels(max_iters_list)
-    ax.set_yticklabels([f"{lr:.0e}" for lr in learning_rates])
+    ax2 = ax1.twinx()
+    ax2.set_ylabel('F1 Score', color='tab:orange')
+    ax2.plot(lr_list, f1_list, 's--', color='tab:orange', label='F1 Score')
+    ax2.tick_params(axis='y', labelcolor='tab:orange')
 
-    plt.xlabel("max_iters")
-    plt.ylabel("learning rate")
-    plt.title("Validation/Test F1-score")
-
-    # Annotate values on heatmap
-    for i in range(len(learning_rates)):
-        for j in range(len(max_iters_list)):
-            value = f"{f1_matrix[i, j]:.2f}"
-            ax.text(j, i, value, ha="center", va="center", color="white" if f1_matrix[i, j] < 0.5 else "black")
-
-    plt.colorbar(im)
-    plt.tight_layout()
+    plt.title('Validation Accuracy and F1-score vs Learning Rate')
+    fig.tight_layout()
     plt.show()
+
 
 
 if __name__ == '__main__':
