@@ -22,9 +22,9 @@ The MLP is a class of feed-forward artificial neural network that maps input dat
 
 | Method | Train Accuracy (%) | Train F1-score | Test Accuracy (%) | Test F1-score | Training Time (s) | Prediction Time (s) |
 |:---|:---|:---|:---|:---|:---|:---|
-| KNN | 64.979% | 0.359204 | 60.000% | 0.329790 | 0.0039 | 0.0009 |
-| Logistic Regression | 64.979% | 0.386905 | 61.667% | 0.330476 | 0.0116 | 0.0000 |
-| KMeans | 45.570% | 0.333175 | 21.667% | 0.260529 | 0.0290 | 0.0000 |
+| MLP | 64.979% | 0.359204 | 60.000% | 0.329790 | 0.0039 | 0.0009 |
+| CNN | 64.979% | 0.386905 | 61.667% | 0.330476 | 0.0116 | 0.0000 |
+
 
 ### Logistic Regression: Validation Accuracy vs Learning Rate:
 
