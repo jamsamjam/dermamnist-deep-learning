@@ -17,7 +17,7 @@ class MLP(nn.Module):
     It should not use any convolutional layers.
     """
 
-    def __init__(self, input_size, n_classes, hidden_layer_size=None):
+    def __init__(self, input_size, n_classes, hidden_layer_size=[1028,512,256,128]):
         """
         Initialize the network.
 
@@ -29,14 +29,6 @@ class MLP(nn.Module):
             n_classes (int): number of classes to predict
         """
         super().__init__()
-
-        if hidden_layer_size is None:
-            hidden_layer_size = [input_size // 2,
-                input_size // 4,
-                input_size // 8,
-                input_size // 16,
-                input_size // 32
-            ]
         
         self.fc1 = nn.Linear(input_size, hidden_layer_size[0])
         self.bn1 = nn.BatchNorm1d(hidden_layer_size[0])
@@ -48,7 +40,7 @@ class MLP(nn.Module):
         self.bn4 = nn.BatchNorm1d(hidden_layer_size[3])
         self.fc5 = nn.Linear(hidden_layer_size[3],n_classes)
 
-        self.dropout = nn.Dropout(p=0.3)
+        
 
     def forward(self, x):
         """
@@ -61,13 +53,9 @@ class MLP(nn.Module):
                 Reminder: logits are value pre-softmax.
         """
         x = F.relu(self.bn1(self.fc1(x)))
-        x = self.dropout(x)
         x = F.relu(self.bn2(self.fc2(x)))
-        x = self.dropout(x)
         x = F.relu(self.bn3(self.fc3(x)))
-        x = self.dropout(x)
         x = F.relu(self.bn4(self.fc4(x)))
-        x = self.dropout(x)
         preds = self.fc5(x)
         return preds
         
