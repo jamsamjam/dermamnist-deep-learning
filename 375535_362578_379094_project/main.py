@@ -1,4 +1,5 @@
 import argparse
+import time
 
 import numpy as np
 from torchinfo import summary
@@ -90,7 +91,10 @@ def main(args):
     ## 4. Train and evaluate the method
 
     # Fit (:=train) the method on the training data
+    train_start = time.time()
     preds_train = method_obj.fit(xtrain, ytrain)
+    train_end = time.time()
+    print(f"\nTraining time: {train_end - train_start:.2f} seconds")
 
     # Early stopping visualization
     if hasattr(method_obj, "val_loss_history") and len(method_obj.val_loss_history) > 0:
@@ -127,12 +131,18 @@ def main(args):
     # You can check your model performance on test set by submitting your test set predictions on the AIcrowd competition.
 
     if args.test:
+        pred_start = time.time()
         preds = method_obj.predict(xtest)
+        pred_end = time.time()
+        print(f"Prediction time on test set: {pred_end - pred_start:.2f} seconds")
         acc = accuracy_fn(preds, y_test)
         macrof1 = macrof1_fn(preds, y_test)
         print(f"Test set: accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
     else:
+        pred_start = time.time()
         preds = method_obj.predict(xval)
+        pred_end = time.time()
+        print(f"Prediction time on validation set: {pred_end - pred_start:.2f} seconds")
         acc = accuracy_fn(preds, yval)
         macrof1 = macrof1_fn(preds, yval)
         print(f"Validation set: accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
@@ -160,18 +170,28 @@ def main(args):
                             early_stop_patience=10,
                             xval=xval,
                             yval=yval)            
+        train_start = time.time()
         preds_train = trainer.fit(xtrain, ytrain)
+        train_end = time.time()
+        print(f"Training time: {train_end - train_start:.2f} seconds")
+        
         acc_train = accuracy_fn(preds_train, ytrain)
         f1_train = macrof1_fn(preds_train, ytrain)
         print(f"Train: acc = {acc_train:.3f}% - F1 = {f1_train:.6f}")
 
         if args.test:
+            pred_start = time.time()
             preds = trainer.predict(xtest)
+            pred_end = time.time()
+            print(f"Prediction time on test set: {pred_end - pred_start:.2f} seconds")
             acc = accuracy_fn(preds, y_test)
             f1 = macrof1_fn(preds, y_test)
             print(f"Test: acc = {acc:.3f}% - F1 = {f1:.6f}")
         else:
+            pred_start = time.time()
             preds = trainer.predict(xval)
+            pred_end = time.time()
+            print(f"Prediction time on validation set: {pred_end - pred_start:.2f} seconds")
             acc = accuracy_fn(preds, yval)
             f1 = macrof1_fn(preds, yval)
             print(f"Validation: acc = {acc:.3f}% - F1 = {f1:.6f}")
