@@ -29,7 +29,7 @@ class MLP(nn.Module):
             n_classes (int): number of classes to predict
         """
         super().__init__()
-        # [512,256,128,64]
+
         if hidden_layer_size is None:
             hidden_layer_size = [input_size // 2,
                 input_size // 4,
@@ -116,11 +116,10 @@ class CNN(nn.Module):
         )
 
         self.fc_layers = nn.Sequential(
-            nn.AdaptiveAvgPool2d((1, 1)), # (N, 128, 1, 1)
-            nn.Flatten(), # (N, 128)
-            nn.Linear(128, 128),
+            nn.Flatten(),
+            nn.Linear(128 * 7 * 7, 256),
             nn.ReLU(),
-            nn.Linear(128, n_classes)
+            nn.Linear(256, n_classes)
         )
 
 
