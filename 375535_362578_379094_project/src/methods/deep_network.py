@@ -194,6 +194,13 @@ class Trainer(object):
         """
         self.model.train()
         total_loss = 0
+
+        # Initialize optimizer if not already done
+        if self.optimizer is None:
+            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
+        if self.criterion is None:
+            self.criterion = nn.CrossEntropyLoss()
+
         for x_batch, y_batch in dataloader:
             x_batch = x_batch.to(self.device)
             y_batch = y_batch.to(self.device)
