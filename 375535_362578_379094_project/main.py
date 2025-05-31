@@ -19,6 +19,8 @@ def main(args):
         args (Namespace): arguments that were parsed from the command line (see at the end
                           of this file). Their value can be accessed as "args.argument".
     """
+    np.random.seed(42)
+
     ## 1. First, we load our data and flatten the images into vectors
     xtrain, xtest, ytrain, y_test = load_data()
 
@@ -84,8 +86,8 @@ def main(args):
                         batch_size=args.nn_batch_size,
                         device=args.device,
                         early_stop_patience=10,
-                        xval=xval,
-                        yval=yval)
+                        xval=xval if not args.test else None,
+                        yval=yval if not args.test else None)
 
 
     ## 4. Train and evaluate the method
@@ -154,40 +156,32 @@ def main(args):
     results = []
     learning_rates = [1e-3, 1e-4, 1e-5]
 
-    print("\n--- Hyperparameter sweep (learning rates) ---")
-    for lr in learning_rates:
-        print(f"\n>> Training with lr={lr}")
+    if not args.test:
+        print("\n--- Hyperparameter sweep (learning rates) ---")
+        for lr in learning_rates:
+            print(f"\n>> Training with lr={lr}")
 
-        # Re-initialize the model
-        if args.nn_type == "mlp":
-            model = MLP(input_size=xtrain.shape[1], n_classes=n_classes)
+            # Re-initialize the model
+            if args.nn_type == "mlp":
+                model = MLP(input_size=xtrain.shape[1], n_classes=n_classes)
 
-        trainer = Trainer(model,
-                            lr=lr,
-                            epochs=args.max_iters,
-                            batch_size=args.nn_batch_size,
-                            device=args.device,
-                            early_stop_patience=10,
-                            xval=xval,
-                            yval=yval)            
-        train_start = time.time()
-        preds_train = trainer.fit(xtrain, ytrain)
-        train_end = time.time()
-        print(f"Training time: {train_end - train_start:.2f} seconds")
-        
-        acc_train = accuracy_fn(preds_train, ytrain)
-        f1_train = macrof1_fn(preds_train, ytrain)
-        print(f"Train: acc = {acc_train:.3f}% - F1 = {f1_train:.6f}")
+            trainer = Trainer(model,
+                                lr=lr,
+                                epochs=args.max_iters,
+                                batch_size=args.nn_batch_size,
+                                device=args.device,
+                                early_stop_patience=10,
+                                xval=xval if not args.test else None,
+                                yval=yval if not args.test else None)            
+            train_start = time.time()
+            preds_train = trainer.fit(xtrain, ytrain)
+            train_end = time.time()
+            print(f"Training time: {train_end - train_start:.2f} seconds")
+            
+            acc_train = accuracy_fn(preds_train, ytrain)
+            f1_train = macrof1_fn(preds_train, ytrain)
+            print(f"Train: acc = {acc_train:.3f}% - F1 = {f1_train:.6f}")
 
-        if args.test:
-            pred_start = time.time()
-            preds = trainer.predict(xtest)
-            pred_end = time.time()
-            print(f"Prediction time on test set: {pred_end - pred_start:.2f} seconds")
-            acc = accuracy_fn(preds, y_test)
-            f1 = macrof1_fn(preds, y_test)
-            print(f"Test: acc = {acc:.3f}% - F1 = {f1:.6f}")
-        else:
             pred_start = time.time()
             preds = trainer.predict(xval)
             pred_end = time.time()
@@ -196,7 +190,7 @@ def main(args):
             f1 = macrof1_fn(preds, yval)
             print(f"Validation: acc = {acc:.3f}% - F1 = {f1:.6f}")
 
-        results.append((lr, acc, f1))
+            results.append((lr, acc, f1))
 
     lr_list = [r[0] for r in results]
     accuracy_list = [r[1] for r in results]

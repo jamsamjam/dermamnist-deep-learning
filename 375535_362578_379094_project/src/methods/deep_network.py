@@ -146,7 +146,7 @@ class Trainer(object):
     It will also serve as an interface between numpy and pytorch.
     """
 
-    def __init__(self, model, lr, epochs, batch_size, device="cpu", early_stop_patience=10, xval=None, yval=None, seed=42):
+    def __init__(self, model, lr, epochs, batch_size, device="cpu", early_stop_patience=10, xval=None, yval=None):
         """
         Initialize the trainer object for a given model.
 
@@ -177,7 +177,6 @@ class Trainer(object):
         self.epochs_without_improvement = 0
 
         self.generator = torch.Generator()
-        self.generator.manual_seed(seed)
 
     def compute_class_weights(self, labels_tensor):
         """
