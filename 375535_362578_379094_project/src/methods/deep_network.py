@@ -17,7 +17,7 @@ class MLP(nn.Module):
     It should not use any convolutional layers.
     """
 
-    def __init__(self, input_size, n_classes, hidden_layer_size=[512, 256, 128]):
+    def __init__(self, input_size, n_classes, hidden_layer_size=None):
         """
         Initialize the network.
 
@@ -29,11 +29,32 @@ class MLP(nn.Module):
             n_classes (int): number of classes to predict
         """
         super().__init__()
-
+        #[512,256,128,64]
+        if hidden_layer_size is None:
+            hidden_layer_size = [input_size // 2,
+                input_size // 4,
+                input_size // 8,
+                input_size // 16,
+                input_size // 32
+            ]
+        
         self.fc1 = nn.Linear(input_size, hidden_layer_size[0])
+        self.bn1 = nn.BatchNorm1d(hidden_layer_size[0])
         self.fc2 = nn.Linear(hidden_layer_size[0], hidden_layer_size[1])
+        self.bn2 = nn.BatchNorm1d(hidden_layer_size[1])
         self.fc3 = nn.Linear(hidden_layer_size[1], hidden_layer_size[2])
-        self.fc4 = nn.Linear(hidden_layer_size[2], n_classes)
+        self.bn3 = nn.BatchNorm1d(hidden_layer_size[2])
+        self.fc4 = nn.Linear(hidden_layer_size[2],hidden_layer_size[3]) #so 4 hidden layers? is better
+        self.bn4 = nn.BatchNorm1d(hidden_layer_size[3])
+        self.fc5 = nn.Linear(hidden_layer_size[3],n_classes)
+        #self.bn5 = nn.BatchNorm1d(hidden_layer_size[4])
+        #self.fc6 = nn.Linear(hidden_layer_size[4],n_classes)
+
+        self.dropout = nn.Dropout(p=0.3)
+
+
+        # ed #321: we can add dropout to prevent overfitting
+        # ed #328: we can use BatchNorm between the layers //Applies Batch Normalization over a 2D or 3D input.
 
     def forward(self, x):
         """
@@ -45,11 +66,26 @@ class MLP(nn.Module):
             preds (tensor): logits of predictions of shape (N, C)
                 Reminder: logits are value pre-softmax.
         """
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        preds = self.fc4(x)
+
+        #We want to flatten the image ?
+        
+        x = F.relu(self.bn1(self.fc1(x)))
+        x = self.dropout(x)
+        #x = self.dropout1(x)
+        x = F.relu(self.bn2(self.fc2(x)))
+        x = self.dropout(x)
+        #x = self.dropout2(x)
+        x = F.relu(self.bn3(self.fc3(x)))
+        x = self.dropout(x)
+        #x = self.dropout3(x)
+        x = F.relu(self.bn4(self.fc4(x)))
+        x = self.dropout(x)
+        #x = self.dropout4(x)
+        #x = F.relu(self.bn5(self.fc5(x)))
+        #x = self.dropout(x)
+        preds = self.fc5(x)
         return preds
+        
 
 
 class CNN(nn.Module):

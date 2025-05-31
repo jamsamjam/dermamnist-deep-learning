@@ -36,10 +36,18 @@ def main(args):
         xtrain = xtrain[idx_train]
         ytrain = ytrain[idx_train]
 
-    xtrain = xtrain / 255.0
+    """xtrain = xtrain / 255.0
     xtest = xtest / 255.0
     if not args.test:
-        xval = xval / 255.0
+        xval = xval / 255.0"""
+    mean = xtrain.mean(axis=0)
+    std = xtrain.std(axis=0) + 1e-8  # Add epsilon to avoid division by zero
+
+    # Normalize all sets using training stats
+    xtrain = (xtrain - mean) / std
+    xtest = (xtest - mean) / std
+    if not args.test:
+        xval = (xval - mean) / std    
 
     ## 3. Initialize the method you want to use.
 
@@ -54,7 +62,10 @@ def main(args):
         xtest = xtest.reshape(xtest.shape[0], -1)
         if not args.test:
             xval = xval.reshape(xval.shape[0], -1)
+
+            
         model = MLP(input_size=xtrain.shape[1], n_classes=n_classes)
+
     
     elif args.nn_type == "cnn":
         xtrain = xtrain.transpose(0, 3, 1, 2)  # (N, H, W, C) → (N, C, H, W)
