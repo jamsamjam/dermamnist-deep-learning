@@ -29,7 +29,7 @@ class MLP(nn.Module):
             n_classes (int): number of classes to predict
         """
         super().__init__()
-        #[512,256,128,64]
+        # [512,256,128,64]
         if hidden_layer_size is None:
             hidden_layer_size = [input_size // 2,
                 input_size // 4,
@@ -44,17 +44,11 @@ class MLP(nn.Module):
         self.bn2 = nn.BatchNorm1d(hidden_layer_size[1])
         self.fc3 = nn.Linear(hidden_layer_size[1], hidden_layer_size[2])
         self.bn3 = nn.BatchNorm1d(hidden_layer_size[2])
-        self.fc4 = nn.Linear(hidden_layer_size[2],hidden_layer_size[3]) #so 4 hidden layers? is better
+        self.fc4 = nn.Linear(hidden_layer_size[2],hidden_layer_size[3])
         self.bn4 = nn.BatchNorm1d(hidden_layer_size[3])
         self.fc5 = nn.Linear(hidden_layer_size[3],n_classes)
-        #self.bn5 = nn.BatchNorm1d(hidden_layer_size[4])
-        #self.fc6 = nn.Linear(hidden_layer_size[4],n_classes)
 
         self.dropout = nn.Dropout(p=0.3)
-
-
-        # ed #321: we can add dropout to prevent overfitting
-        # ed #328: we can use BatchNorm between the layers //Applies Batch Normalization over a 2D or 3D input.
 
     def forward(self, x):
         """
@@ -66,23 +60,14 @@ class MLP(nn.Module):
             preds (tensor): logits of predictions of shape (N, C)
                 Reminder: logits are value pre-softmax.
         """
-
-        #We want to flatten the image ?
-        
         x = F.relu(self.bn1(self.fc1(x)))
         x = self.dropout(x)
-        #x = self.dropout1(x)
         x = F.relu(self.bn2(self.fc2(x)))
         x = self.dropout(x)
-        #x = self.dropout2(x)
         x = F.relu(self.bn3(self.fc3(x)))
         x = self.dropout(x)
-        #x = self.dropout3(x)
         x = F.relu(self.bn4(self.fc4(x)))
         x = self.dropout(x)
-        #x = self.dropout4(x)
-        #x = F.relu(self.bn5(self.fc5(x)))
-        #x = self.dropout(x)
         preds = self.fc5(x)
         return preds
         
@@ -131,10 +116,11 @@ class CNN(nn.Module):
         )
 
         self.fc_layers = nn.Sequential(
-            nn.Flatten(),  # (N, 128 * 7 * 7)
-            nn.Linear(128 * 7 * 7, 256),
+            nn.AdaptiveAvgPool2d((1, 1)), # (N, 128, 1, 1)
+            nn.Flatten(), # (N, 128)
+            nn.Linear(128, 128),
             nn.ReLU(),
-            nn.Linear(256, n_classes)
+            nn.Linear(128, n_classes)
         )
 
 
