@@ -6,7 +6,7 @@ from torchinfo import summary
 import matplotlib.pyplot as plt
 
 from src.data import load_data
-from src.methods.deep_network import MLP, CNN, Trainer
+from src.methods.deep_network import MLP, MLPMixer, CNN, Trainer
 from src.utils import normalize_fn, append_bias_term, accuracy_fn, macrof1_fn, get_n_classes, plot_confusion_matrix
 
 
@@ -69,6 +69,12 @@ def main(args):
             
         model = MLP(input_size=xtrain.shape[1], n_classes=n_classes)
 
+    elif args.nn_type == "mlp-mixer":
+        xtrain = xtrain.transpose(0, 3, 1, 2)
+        xtest = xtest.transpose(0, 3, 1, 2)
+        if not args.test:
+            xval = xval.transpose(0, 3, 1, 2)
+        model = MLPMixer(n_classes=n_classes)
     
     elif args.nn_type == "cnn":
         xtrain = xtrain.transpose(0, 3, 1, 2)  # (N, H, W, C) → (N, C, H, W)
@@ -83,11 +89,11 @@ def main(args):
     method_obj = Trainer(model,
                         lr=args.lr,
                         epochs=args.max_iters,
-                        batch_size=args.nn_batch_size,
+                        batch_size=32,  # smaller batch size for better generalization
                         device=args.device,
-                        early_stop_patience=10,
-                        xval=xval if not args.test else None,
-                        yval=yval if not args.test else None)
+                        early_stop_patience=10,  # increased patience
+                        xval=xval,
+                        yval=yval)
 
 
     ## 4. Train and evaluate the method
