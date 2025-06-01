@@ -38,9 +38,7 @@ class MLP(nn.Module):
         self.bn3 = nn.BatchNorm1d(hidden_layer_size[2])
         self.fc4 = nn.Linear(hidden_layer_size[2],hidden_layer_size[3])
         self.bn4 = nn.BatchNorm1d(hidden_layer_size[3])
-        self.fc5 = nn.Linear(hidden_layer_size[3],n_classes)
-
-        
+        self.fc5 = nn.Linear(hidden_layer_size[3],n_classes)  
 
     def forward(self, x):
         """
@@ -58,45 +56,45 @@ class MLP(nn.Module):
         x = F.relu(self.bn4(self.fc4(x)))
         preds = self.fc5(x)
         return preds
-        
+
 
 
 class MixerBlock(nn.Module):
     """
     A mixer block for the MLPMixer.
+
     https://research.google/pubs/mlp-mixer-an-all-mlp-architecture-for-vision/
     """
+
     def __init__(self, num_patches, dim, token_dim, channel_dim):
         super().__init__()
         self.token_mixing = nn.Sequential(
+            nn.LayerNorm(num_patches),
             nn.Linear(num_patches, token_dim),
             nn.GELU(),
             nn.Linear(token_dim, num_patches)
         )
         self.channel_mixing = nn.Sequential(
+            nn.LayerNorm(dim),
             nn.Linear(dim, channel_dim),
             nn.GELU(),
             nn.Linear(channel_dim, dim)
         )
-        self.norm1 = nn.LayerNorm(dim)
-        self.norm2 = nn.LayerNorm(dim)
 
     def forward(self, x):
         # Token mixing
-        y = self.norm1(x)
-        y = y.transpose(1, 2)
+        y = x.transpose(1, 2)
         y = self.token_mixing(y)
         y = y.transpose(1, 2)
         x = x + y
 
         # Channel mixing
-        y = self.norm2(x)
-        y = self.channel_mixing(y)
+        y = self.channel_mixing(x)
         x = x + y
         return x
 
 class MLPMixer(nn.Module):
-    def __init__(self, image_size=28, patch_size=7, dim=128, depth=2, token_dim=64, channel_dim=256, n_classes=7):
+    def __init__(self, image_size=28, patch_size=7, dim=512, depth=4, token_dim=128, channel_dim=256, n_classes=7):
         super().__init__()
         assert image_size % patch_size == 0, "Image dimensions must be divisible by the patch size."
         self.num_patches = (image_size // patch_size) ** 2
@@ -107,7 +105,11 @@ class MLPMixer(nn.Module):
             MixerBlock(self.num_patches, dim, token_dim, channel_dim) for _ in range(depth)
         ])
         self.norm = nn.LayerNorm(dim)
-        self.classifier = nn.Linear(dim, n_classes)
+        self.classifier = nn.Sequential(
+            nn.Linear(dim, 256),
+            nn.GELU(),
+            nn.Linear(256, n_classes)
+        )
 
     def forward(self, x):
         B, C, H, W = x.shape
@@ -187,6 +189,7 @@ class CNN(nn.Module):
         preds = self.fc_layers(x)
         
         return preds
+
 
 
 class Trainer(object):

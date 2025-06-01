@@ -171,6 +171,12 @@ def main(args):
             if args.nn_type == "mlp":
                 model = MLP(input_size=xtrain.shape[1], n_classes=n_classes)
 
+            elif args.nn_type == "mlp-mixer":
+                model = MLPMixer(n_classes=n_classes)
+
+            elif args.nn_type == "cnn":
+                model = CNN(input_channels=3, n_classes=n_classes)
+
             trainer = Trainer(model,
                                 lr=lr,
                                 epochs=args.max_iters,
