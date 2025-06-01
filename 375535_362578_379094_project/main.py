@@ -65,8 +65,6 @@ def main(args):
         xtest = xtest.reshape(xtest.shape[0], -1)
         if not args.test:
             xval = xval.reshape(xval.shape[0], -1)
-
-            
         model = MLP(input_size=xtrain.shape[1], n_classes=n_classes)
 
     elif args.nn_type == "mlp-mixer":
@@ -94,7 +92,6 @@ def main(args):
                         early_stop_patience=10,  # increased patience
                         xval=xval if not args.test else None,
                         yval=yval if not args.test else None)
-
 
     ## 4. Train and evaluate the method
 
@@ -167,7 +164,6 @@ def main(args):
         for lr in learning_rates:
             print(f"\n>> Training with lr={lr}")
 
-            # Re-initialize the model
             if args.nn_type == "mlp":
                 model = MLP(input_size=xtrain.shape[1], n_classes=n_classes)
 
@@ -224,7 +220,6 @@ def main(args):
     plt.title('Validation Accuracy and F1-score vs Learning Rate')
     fig.tight_layout()
     plt.show()
-
 
 
 if __name__ == '__main__':

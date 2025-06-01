@@ -67,6 +67,15 @@ class MixerBlock(nn.Module):
     """
 
     def __init__(self, num_patches, dim, token_dim, channel_dim):
+        """
+        Initialize the mixer block.
+
+        Arguments:
+            num_patches (int): number of patches in the input
+            dim (int): dimension of the input
+            token_dim (int): dimension of the token mixing
+            channel_dim (int): dimension of the channel mixing
+        """
         super().__init__()
         self.token_mixing = nn.Sequential(
             nn.LayerNorm(num_patches),
@@ -82,6 +91,14 @@ class MixerBlock(nn.Module):
         )
 
     def forward(self, x):
+        """
+        Forward pass of the mixer block.
+
+        Arguments:
+            x (tensor): input batch of shape (N, D)
+        Returns:
+            x (tensor): output batch of shape (N, D)
+        """
         # Token mixing
         y = x.transpose(1, 2)
         y = self.token_mixing(y)
@@ -95,6 +112,15 @@ class MixerBlock(nn.Module):
 
 class MLPMixer(nn.Module):
     def __init__(self, image_size=28, patch_size=7, dim=512, depth=4, token_dim=128, channel_dim=256, n_classes=7):
+        """
+        Initialize the MLPMixer network.
+
+        Arguments:
+            image_size (int): size of the input image
+            patch_size (int): size of the patch
+            dim (int): dimension of the input
+            depth (int): number of mixer blocks
+        """
         super().__init__()
         assert image_size % patch_size == 0, "Image dimensions must be divisible by the patch size."
         self.num_patches = (image_size // patch_size) ** 2
@@ -112,6 +138,15 @@ class MLPMixer(nn.Module):
         )
 
     def forward(self, x):
+        """
+        Forward pass of the MLPMixer network.
+
+        Arguments:
+            x (tensor): input batch of shape (N, C, H, W)
+        Returns:
+            preds (tensor): logits of predictions of shape (N, C)
+                Reminder: logits are value pre-softmax.
+        """
         B, C, H, W = x.shape
         patches = x.unfold(2, 7, 7).unfold(3, 7, 7)
         patches = patches.contiguous().view(B, C, -1, 7, 7)
