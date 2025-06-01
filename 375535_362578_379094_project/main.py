@@ -92,8 +92,8 @@ def main(args):
                         batch_size=32,  # smaller batch size for better generalization
                         device=args.device,
                         early_stop_patience=10,  # increased patience
-                        xval=xval,
-                        yval=yval)
+                        xval=xval if not args.test else None,
+                        yval=yval if not args.test else None)
 
 
     ## 4. Train and evaluate the method
